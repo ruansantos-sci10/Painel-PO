@@ -1,0 +1,34 @@
+rules_version = '2';
+
+// =====================================================================
+// Painel do PO — regras de segurança do Firestore
+//
+// Só acessa quem estiver logado E tiver um documento em autorizados/{uid}.
+// Esse documento é criado à mão no console do Firebase (veja o README):
+// assim, mesmo que alguém crie uma conta pelo SDK, não enxerga nada.
+// =====================================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function autorizado() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/autorizados/$(request.auth.uid));
+    }
+
+    // Lista de usuários liberados: cada um só lê o próprio documento; ninguém escreve pelo app.
+    match /autorizados/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Coleções do painel
+    match /{colecao}/{id} {
+      allow read, write: if autorizado() && colecao in [
+        'produtos', 'regras', 'config', 'sprints', 'feriados',
+        'links', 'pendencias', 'eventos_kanboard', 'combinados'
+      ];
+    }
+
+    // cache/agenda e qualquer outra coleção: só as Cloud Functions (Admin SDK) acessam.
+  }
+}

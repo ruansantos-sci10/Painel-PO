@@ -1,0 +1,196 @@
+/* =====================================================================
+   Painel do PO — design tokens e estilos compartilhados
+   Estilos específicos de cada bloco ficam nos próprios componentes (.vue).
+   ===================================================================== */
+
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f3f4f7;
+  --surface-3: #eceef2;
+  --border: #e7e9ee;
+  --border-strong: #d5d9e0;
+  --text: #111827;
+  --text-2: #374151;
+  --muted: #6b7280;
+  --faint: #9ca3af;
+
+  --accent: #4f6bed;
+  --accent-hover: #3f5ae0;
+  --accent-soft: #eef1fe;
+  --accent-text: #3b52c4;
+  --on-accent: #ffffff;
+
+  --warn: #b45309;
+  --warn-soft: #fef5e7;
+  --danger: #dc2626;
+  --danger-soft: #fdecec;
+  --ok: #15803d;
+  --ok-soft: #e9f7ee;
+
+  --t1: #4f6bed;
+  --t1-soft: #eef1fe;
+  --t2: #9b51e0;
+  --t2-soft: #f5edfd;
+
+  --shadow-sm: 0 1px 2px rgba(17, 24, 39, .04);
+  --shadow: 0 1px 2px rgba(17, 24, 39, .04), 0 4px 16px -6px rgba(17, 24, 39, .08);
+  --shadow-lg: 0 12px 32px -8px rgba(17, 24, 39, .22);
+  --ring: 0 0 0 3px rgba(79, 107, 237, .22);
+
+  --radius-sm: 8px;
+  --radius: 10px;
+  --radius-lg: 16px;
+
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d0f13;
+    --surface: #15181e;
+    --surface-2: #1b1f26;
+    --surface-3: #232831;
+    --border: #252a33;
+    --border-strong: #343a45;
+    --text: #eef0f3;
+    --text-2: #cdd1d8;
+    --muted: #949aa5;
+    --faint: #6b717c;
+
+    --accent: #7b91f7;
+    --accent-hover: #93a5f9;
+    --accent-soft: #1e2645;
+    --accent-text: #a5b4fc;
+    --on-accent: #0d0f13;
+
+    --warn: #f5b454;
+    --warn-soft: #33260f;
+    --danger: #f87171;
+    --danger-soft: #3a1719;
+    --ok: #4ade80;
+    --ok-soft: #12291b;
+
+    --t1: #7b91f7;
+    --t1-soft: #1e2645;
+    --t2: #c08af5;
+    --t2-soft: #2a1d3d;
+
+    --shadow-sm: none;
+    --shadow: 0 0 0 1px rgba(255, 255, 255, .02);
+    --shadow-lg: 0 16px 40px -8px rgba(0, 0, 0, .6);
+    --ring: 0 0 0 3px rgba(123, 145, 247, .28);
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 var(--font);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+a { color: var(--accent-text); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 2px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+code {
+  font: 500 12px/1.4 ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; padding: 1px 5px;
+}
+::selection { background: var(--accent-soft); }
+:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* ---------- Utilitários ---------- */
+.muted { color: var(--muted); }
+.small { font-size: 12.5px; }
+.help { color: var(--muted); font-size: 12.5px; line-height: 1.55; margin: 0 0 12px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.eyebrow {
+  font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em;
+  margin: 18px 0 6px; display: flex; align-items: center; gap: 6px;
+}
+.eyebrow:first-child { margin-top: 4px; }
+
+/* ---------- Botões ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 34px; padding: 0 13px; border-radius: var(--radius);
+  border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-2);
+  font-weight: 500; font-size: 13px; cursor: pointer; white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  transition: background .15s, border-color .15s, color .15s, box-shadow .15s, transform .05s;
+}
+.btn:hover { background: var(--surface-2); color: var(--text); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .55; cursor: default; transform: none; }
+.btn svg { width: 15px; height: 15px; flex: none; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.ghost { border-color: transparent; background: transparent; box-shadow: none; color: var(--muted); }
+.btn.ghost:hover { background: var(--surface-2); color: var(--text); }
+.btn.sm { height: 28px; padding: 0 10px; font-size: 12.5px; border-radius: var(--radius-sm); }
+.btn.icon { width: 34px; padding: 0; }
+.btn.icon.sm { width: 28px; }
+.btn.danger:hover { color: var(--danger); background: var(--danger-soft); }
+
+/* ---------- Campos ---------- */
+.field, input[type=text], input[type=date], input[type=email], input[type=password], input[type=url], input[type=number], select, textarea {
+  height: 36px; width: 100%; min-width: 0; padding: 0 11px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface);
+  font-size: 13.5px; transition: border-color .15s, box-shadow .15s;
+}
+textarea { height: auto; padding: 8px 11px; }
+input::placeholder, textarea::placeholder { color: var(--faint); }
+input:hover, select:hover, textarea:hover { border-color: var(--faint); }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+select { appearance: none; background: var(--surface) var(--chevron) no-repeat right 9px center; padding-right: 30px; cursor: pointer; }
+select.sm, input.sm { height: 30px; font-size: 12.5px; border-radius: var(--radius-sm); }
+input[type=date] { color-scheme: light dark; }
+input[type=checkbox] { accent-color: var(--accent); }
+
+.form-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.form-row > * { flex: 1 1 130px; }
+.form-row > .btn { flex: 0 0 auto; }
+
+/* ---------- Tabelas ---------- */
+.table-wrap { overflow-x: auto; margin: 0 -4px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 8px 4px; vertical-align: middle; }
+th { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); padding-top: 0; }
+td { border-bottom: 1px solid var(--border); }
+tbody tr:last-child td { border-bottom: 0; }
+td.acao { width: 36px; text-align: right; }
+
+/* ---------- Marcadores ---------- */
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.dot.t1 { background: var(--t1); }
+.dot.t2 { background: var(--t2); }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px;
+  border-radius: 99px; font-size: 11.5px; font-weight: 500; white-space: nowrap;
+  background: var(--surface-2); color: var(--muted); border: 1px solid var(--border);
+}
+.badge svg { width: 12px; height: 12px; }
+.badge.accent { background: var(--accent-soft); color: var(--accent-text); border-color: transparent; }
+.badge.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.badge.danger { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+.badge.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.badge.t1 { background: var(--t1-soft); color: var(--t1); border-color: transparent; }
+.badge.t2 { background: var(--t2-soft); color: var(--t2); border-color: transparent; }
+
+/* ---------- Avisos ---------- */
+.alert {
+  display: flex; align-items: flex-start; gap: 10px; padding: 11px 14px; margin-bottom: 18px;
+  border-radius: var(--radius); font-size: 13px; line-height: 1.5;
+  background: var(--warn-soft); color: var(--warn);
+}
+.alert svg { width: 17px; height: 17px; flex: none; margin-top: 1px; }
+.alert > .texto { flex: 1; }
+.alert.danger { background: var(--danger-soft); color: var(--danger); }
+.alert.info { background: var(--accent-soft); color: var(--accent-text); }
+.alert code { background: transparent; border-color: currentColor; opacity: .85; }
