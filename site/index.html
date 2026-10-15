@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel do PO</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232f5bd3'/><path d='M28 52l14 14 30-32' stroke='white' stroke-width='11' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<script>
+  // =================================================================
+  // CONFIGURAÇÃO — preencha com os dados do seu projeto Supabase
+  // (Project Settings > API). A chave "anon" é pública por natureza;
+  // quem protege os dados é o login + as regras RLS do banco.
+  // Deixe em branco para abrir em MODO DEMONSTRAÇÃO.
+  // =================================================================
+  window.PAINEL_CONFIG = {
+    SUPABASE_URL: "https://pfqjqboyozmeyrinwzav.supabase.co/",
+    SUPABASE_ANON_KEY: "sb_publishable_x7B2Wq_wxUr_5gRzPb_5EA_KANC7TQt"
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --surface-2: #f0f2f5;
+    --border: #e1e4ea;
+    --text: #1b1f27;
+    --muted: #646b78;
+    --accent: #2f5bd3;
+    --accent-soft: #e8eefc;
+    --warn: #b45309;
+    --warn-soft: #fdf3e3;
+    --danger: #c0392b;
+    --danger-soft: #fbeceb;
+    --ok: #1f7a4d;
+    --ok-soft: #e6f4ec;
+    --t1: #2f5bd3;
+    --t2: #8a3ec9;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .06);
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151b;
+      --surface: #1a1e26;
+      --surface-2: #222733;
+      --border: #2d3340;
+      --text: #e6e8ec;
+      --muted: #9aa1ae;
+      --accent: #7c9cf5;
+      --accent-soft: #23305a;
+      --warn: #f0b35a;
+      --warn-soft: #3a2c16;
+      --danger: #f08a7e;
+      --danger-soft: #3d2120;
+      --ok: #6fcf9b;
+      --ok-soft: #173326;
+      --t1: #7c9cf5;
+      --t2: #c493f0;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 20px 16px 48px; }
+  .hidden { display: none !important; }
+  .muted { color: var(--muted); }
+  .small { font-size: 12.5px; }
+
+  /* Topo */
+  header.top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  .hello h1 { margin: 0; font-size: 22px; letter-spacing: -.01em; }
+  .hello p { margin: 2px 0 0; color: var(--muted); }
+  .top-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .tabs { display: inline-flex; background: var(--surface-2); border-radius: 9px; padding: 3px; }
+  .tabs button { border: 0; background: none; padding: 6px 12px; border-radius: 7px; cursor: pointer; color: var(--muted); }
+  .tabs button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow); font-weight: 600; }
+  .btn { border: 1px solid var(--border); background: var(--surface); padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+  .btn:hover { border-color: var(--muted); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.sm { padding: 3px 9px; font-size: 12.5px; }
+  .btn.ghost { border-color: transparent; background: none; color: var(--muted); }
+  .btn.ghost:hover { color: var(--text); }
+
+  .banner { background: var(--warn-soft); color: var(--warn); border-radius: 10px; padding: 9px 14px; margin-bottom: 14px; font-size: 13px; }
+  .banner.err { background: var(--danger-soft); color: var(--danger); }
+
+  /* Links rápidos */
+  .links { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .links a { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; color: var(--text); font-size: 13px; }
+  .links a:hover { border-color: var(--accent); text-decoration: none; }
+
+  /* Sprints */
+  .sprints { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .sprint { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow); }
+  .sprint .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .sprint h3 { margin: 0; font-size: 14px; display: flex; align-items: center; gap: 7px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+  .dot.t1 { background: var(--t1); } .dot.t2 { background: var(--t2); }
+  .bar { height: 6px; background: var(--surface-2); border-radius: 99px; margin: 9px 0 6px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; border-radius: 99px; }
+  .flag { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
+  .flag.warn { background: var(--warn-soft); color: var(--warn); }
+
+  /* Grade principal */
+  .grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; }
+  .card > .hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .card > .hd h2 { margin: 0; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .card > .bd { padding: 8px 16px 14px; }
+  .count { font-size: 12px; font-weight: 700; background: var(--accent); color: #fff; border-radius: 99px; padding: 0 8px; line-height: 20px; }
+  .count.zero { background: var(--surface-2); color: var(--muted); }
+  .empty { color: var(--muted); padding: 14px 0 6px; text-align: center; }
+
+  /* Pendências */
+  .grp { margin-top: 10px; }
+  .grp-hd { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 12px 0 4px; }
+  .grp-hd.sem { color: var(--warn); }
+  .item { display: flex; gap: 12px; align-items: flex-start; padding: 9px 0; border-top: 1px solid var(--border); }
+  .grp .item:first-of-type { border-top: 0; }
+  .item .main { flex: 1; min-width: 0; }
+  .item .tt { font-weight: 550; overflow-wrap: anywhere; }
+  .item .meta { color: var(--muted); font-size: 12.5px; margin-top: 2px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+  .item .acts { display: flex; gap: 6px; align-items: center; flex: none; }
+  .age { font-weight: 600; }
+  .age.old { color: var(--warn); }
+  .age.older { color: var(--danger); }
+  .item select { max-width: 170px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); padding: 3px 6px; font-size: 12.5px; }
+  @media (max-width: 600px) { .item { flex-direction: column; gap: 6px; } }
+
+  details.resolved summary { cursor: pointer; color: var(--muted); font-size: 13px; padding: 8px 0 2px; }
+  details.resolved .item .tt { font-weight: 450; color: var(--muted); }
+
+  /* Agenda */
+  .ev { display: grid; grid-template-columns: 92px 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); }
+  .ev:first-child { border-top: 0; }
+  .ev .hr { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .ev.past { opacity: .5; }
+  .ev.now .hr { color: var(--accent); }
+  .ev.now { background: var(--accent-soft); margin: 0 -16px; padding: 8px 16px; }
+  .ev .tt { overflow-wrap: anywhere; }
+
+  /* Combinados */
+  form.quick { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 10px 0 6px; }
+  form.quick .r { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  input[type=text], input[type=date], input[type=email], input[type=password], input[type=url], input[type=number], select, textarea {
+    border: 1px solid var(--border); border-radius: 8px; background: var(--surface); padding: 6px 9px; width: 100%; min-width: 0;
+  }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .todo { display: flex; gap: 9px; align-items: flex-start; padding: 7px 0; border-top: 1px solid var(--border); }
+  .todo:first-child { border-top: 0; }
+  .todo input[type=checkbox] { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--accent); flex: none; }
+  .todo .main { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .todo.done .main { text-decoration: line-through; color: var(--muted); }
+  .chip { font-size: 11.5px; padding: 0 7px; border-radius: 99px; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
+  .chip.late { background: var(--danger-soft); color: var(--danger); font-weight: 600; }
+  .chip.today { background: var(--warn-soft); color: var(--warn); font-weight: 600; }
+  .sub { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 12px 0 2px; }
+
+  /* Configurações */
+  .cfg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 6px 6px; border-top: 1px solid var(--border); vertical-align: middle; }
+  th { font-size: 12px; color: var(--muted); font-weight: 600; border-top: 0; }
+  td select, td input { padding: 3px 6px; }
+  .inline-form { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .inline-form > * { flex: 1 1 120px; }
+  .inline-form > .btn { flex: 0 0 auto; }
+  .help { color: var(--muted); font-size: 12.5px; margin: 6px 0 0; }
+  pre.raw { white-space: pre-wrap; word-break: break-word; background: var(--surface-2); padding: 8px; border-radius: 8px; font-size: 12px; margin: 6px 0 0; }
+  .res-ok { color: var(--ok); font-weight: 600; } .res-err { color: var(--danger); font-weight: 600; }
+
+  /* Login */
+  .login { max-width: 360px; margin: 12vh auto 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+  .login h1 { margin: 0 0 4px; font-size: 20px; }
+  .login form { display: grid; gap: 10px; margin-top: 16px; }
+
+  .toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 16px; border-radius: 9px; font-size: 13px; z-index: 10; }
+</style>
+</head>
+<body>
+
+<div id="login" class="login hidden">
+  <h1>Painel do PO</h1>
+  <p class="muted">Entre com o usuário criado no Supabase.</p>
+  <form id="login-form">
+    <input type="email" id="login-email" placeholder="E-mail" autocomplete="username" required>
+    <input type="password" id="login-senha" placeholder="Senha" autocomplete="current-password" required>
+    <button class="btn primary" type="submit">Entrar</button>
+    <p id="login-erro" class="small" style="color:var(--danger);margin:0"></p>
+  </form>
+</div>
+
+<div id="app" class="wrap hidden">
+  <header class="top">
+    <div class="hello">
+      <h1 id="saudacao">Bom dia</h1>
+      <p id="data-hoje"></p>
+    </div>
+    <div class="top-actions">
+      <div class="tabs" role="tablist">
+        <button class="on" data-tab="hoje">Hoje</button>
+        <button data-tab="config">Configurações</button>
+      </div>
+      <button class="btn" id="btn-atualizar" title="Atualizar agora">↻ Atualizar</button>
+      <button class="btn ghost" id="btn-sair">Sair</button>
+    </div>
+  </header>
+
+  <div id="banner-demo" class="banner hidden">
+    <strong>Modo demonstração.</strong> Os dados abaixo são exemplos e nada é salvo. Preencha o <code>PAINEL_CONFIG</code> no topo do <code>index.html</code> para conectar ao seu Supabase.
+  </div>
+  <div id="banner-erro" class="banner err hidden"></div>
+
+  <!-- ================= HOJE ================= -->
+  <section id="tab-hoje">
+    <nav class="links" id="links"></nav>
+    <div class="sprints" id="sprints"></div>
+
+    <div class="grid">
+      <div>
+        <div class="card">
+          <div class="hd">
+            <h2>Aguardando você <span class="count" id="pend-count">0</span></h2>
+            <span class="muted small" id="pend-sub"></span>
+          </div>
+          <div class="bd">
+            <div id="pendencias"></div>
+            <details class="resolved" id="resolvidas-box">
+              <summary>Resolvidas nos últimos 7 dias (<span id="resolvidas-count">0</span>)</summary>
+              <div id="resolvidas"></div>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="hd">
+            <h2>Agenda de hoje <span class="count zero" id="ag-count">0</span></h2>
+            <span class="muted small" id="ag-sub">Google Agenda</span>
+          </div>
+          <div class="bd" id="agenda"></div>
+        </div>
+
+        <div class="card">
+          <div class="hd">
+            <h2>Combinados e lembretes <span class="count zero" id="cb-count">0</span></h2>
+          </div>
+          <div class="bd">
+            <form class="quick" id="form-combinado" autocomplete="off">
+              <input type="text" id="cb-desc" placeholder="Ex.: Retornar ao cliente sobre o relatório de CND" required>
+              <div class="r">
+                <input type="text" id="cb-quem" placeholder="Com quem (opcional)">
+                <select id="cb-canal">
+                  <option value="WhatsApp">WhatsApp</option>
+                  <option value="Discord">Discord</option>
+                  <option value="Reunião">Reunião</option>
+                  <option value="Outro">Outro</option>
+                </select>
+              </div>
+              <div class="r">
+                <input type="date" id="cb-prazo" title="Prazo">
+                <select id="cb-produto"><option value="">Produto (opcional)</option></select>
+              </div>
+              <button class="btn primary" type="submit">Adicionar</button>
+            </form>
+            <div id="combinados"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CONFIGURAÇÕES ================= -->
+  <section id="tab-config" class="hidden">
+    <div class="cfg-grid">
+
+      <div class="card">
+        <div class="hd"><h2>Regras de classificação</h2></div>
+        <div class="bd">
+          <p class="help">Como o painel descobre o produto/time de cada card.
+            <strong>Prefixo</strong>: o texto entre parênteses no início do título começa com o padrão (ex.: padrão <code>IC+</code> casa com <code>(IC+ Situação Fiscal) …</code>).
+            <strong>Sprint</strong>: o nome da sprint/quadro contém o padrão.</p>
+          <table>
+            <thead><tr><th>Tipo</th><th>Padrão</th><th>Produto</th><th>Time</th><th></th></tr></thead>
+            <tbody id="regras"></tbody>
+          </table>
+          <form class="inline-form" id="form-regra" autocomplete="off">
+            <select id="rg-tipo"><option value="prefixo">Prefixo</option><option value="sprint">Sprint</option></select>
+            <input type="text" id="rg-padrao" placeholder="Padrão" required>
+            <select id="rg-produto"><option value="">— produto —</option></select>
+            <select id="rg-time"><option value="">— time —</option><option value="1">Time 1</option><option value="2">Time 2</option></select>
+            <button class="btn primary" type="submit">Adicionar</button>
+          </form>
+          <p class="help">Ao adicionar ou remover uma regra, as pendências abertas (não classificadas à mão) são reclassificadas.</p>
+          <div id="prefixos-sem-regra"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="hd"><h2>Produtos</h2></div>
+        <div class="bd">
+          <table>
+            <thead><tr><th>Produto</th><th>Tamanho</th><th>Time</th><th>Ativo</th></tr></thead>
+            <tbody id="produtos"></tbody>
+          </table>
+          <form class="inline-form" id="form-produto" autocomplete="off">
+            <input type="text" id="pd-nome" placeholder="Novo produto" required>
+            <select id="pd-tam"><option>G</option><option selected>M</option><option>P</option></select>
+            <select id="pd-time"><option value="1">Time 1</option><option value="2">Time 2</option></select>
+            <button class="btn primary" type="submit">Adicionar</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="hd"><h2>Sprints e feriados</h2></div>
+        <div class="bd">
+          <table>
+            <thead><tr><th>Time</th><th>Segunda-feira de início (referência)</th><th>Duração (dias corridos)</th></tr></thead>
+            <tbody id="sprints-cfg"></tbody>
+          </table>
+          <p class="help">Basta uma data de início de qualquer sprint: o painel calcula as seguintes. Feriados e fins de semana não contam como dia útil da sprint.</p>
+          <div class="sub" style="margin-top:16px">Feriados</div>
+          <table><tbody id="feriados"></tbody></table>
+          <form class="inline-form" id="form-feriado">
+            <input type="date" id="fr-data" required>
+            <input type="text" id="fr-desc" placeholder="Descrição">
+            <button class="btn primary" type="submit">Adicionar</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="hd"><h2>Kanboard e atalhos</h2></div>
+        <div class="bd">
+          <label class="small muted" for="cfg-coluna">Nome da coluna do PO no Kanboard (exatamente como aparece na mensagem)</label>
+          <div class="inline-form" style="margin-top:4px">
+            <input type="text" id="cfg-coluna">
+            <button class="btn primary" id="btn-coluna">Salvar</button>
+          </div>
+          <div class="sub" style="margin-top:18px">Links rápidos</div>
+          <table><tbody id="links-cfg"></tbody></table>
+          <form class="inline-form" id="form-link" autocomplete="off">
+            <input type="text" id="lk-nome" placeholder="Nome (ex.: Miro)" required>
+            <input type="url" id="lk-url" placeholder="https://…" required>
+            <button class="btn primary" type="submit">Adicionar</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column: 1 / -1">
+        <div class="hd"><h2>Eventos recebidos do Kanboard</h2><span class="muted small">últimos 30</span></div>
+        <div class="bd">
+          <p class="help">Use para conferir se o webhook está chegando e sendo entendido. O texto bruto fica guardado.</p>
+          <table>
+            <thead><tr><th>Recebido</th><th>Solicitação</th><th>De → Para</th><th>Resultado</th></tr></thead>
+            <tbody id="eventos"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ===================================================================
+  // Utilidades de data (sempre em datas locais "AAAA-MM-DD")
+  // ===================================================================
+  const pad = (n) => String(n).padStart(2, "0");
+  const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const parseYmd = (s) => { const [a, m, d] = s.split("-").map(Number); return new Date(a, m - 1, d); };
+  const addDias = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const fmtCurta = (d) => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
+  const fmtHora = (iso) => { const d = new Date(iso); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+  const hojeStr = () => ymd(new Date());
+
+  function idade(iso) {
+    const ms = Date.now() - new Date(iso).getTime();
+    const h = Math.floor(ms / 3600000);
+    if (h < 1) return { txt: "agora há pouco", dias: 0 };
+    if (h < 24) return { txt: `há ${h}h`, dias: 0 };
+    const d = Math.floor(h / 24);
+    return { txt: d === 1 ? "há 1 dia" : `há ${d} dias`, dias: d };
+  }
+
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const $ = (id) => document.getElementById(id);
+
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.remove("hidden");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.add("hidden"), 2600);
+  }
+
+  // ===================================================================
+  // Cálculo da sprint atual (dias úteis, pulando fins de semana e feriados)
+  // ===================================================================
+  function sprintAtual(cfg, hoje, feriados) {
+    const ref = parseYmd(cfg.inicio_referencia);
+    const dur = cfg.duracao_dias || 14;
+    const diff = Math.round((hoje - ref) / 86400000);
+    const k = Math.floor(diff / dur);
+    const ini = addDias(ref, k * dur);
+    const uteis = [];
+    for (let i = 0; i < dur; i++) {
+      const d = addDias(ini, i);
+      const dow = d.getDay();
+      if (dow !== 0 && dow !== 6 && !feriados.has(ymd(d))) uteis.push(d);
+    }
+    const hs = ymd(hoje);
+    const hojeUtil = uteis.some((d) => ymd(d) === hs);
+    const dia = uteis.filter((d) => ymd(d) <= hs).length;
+    return {
+      inicio: uteis[0], fim: uteis[uteis.length - 1],
+      dia, total: uteis.length, hojeUtil,
+      primeiro: hojeUtil && dia === 1,
+      ultimo: hojeUtil && dia === uteis.length,
+      proxInicio: (() => { // 1º dia útil da próxima sprint
+        for (let i = dur; i < dur * 2; i++) {
+          const d = addDias(ini, i);
+          if (d.getDay() !== 0 && d.getDay() !== 6 && !feriados.has(ymd(d))) return d;
+        }
+        return addDias(ini, dur);
+      })(),
+    };
+  }
+
+  // ===================================================================
+  // Camada de dados — Supabase ou demonstração
+  // ===================================================================
+  const CFG = { ...(window.PAINEL_CONFIG || {}) };
+  if (CFG.SUPABASE_URL) CFG.SUPABASE_URL = CFG.SUPABASE_URL.trim().replace(/\/+$/, "");
+  const DEMO = !CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY;
+  let api;
+
+  if (!DEMO) {
+    const sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+    const ok = ({ data, error }) => { if (error) throw new Error(error.message); return data; };
+    api = {
+      sb,
+      async sessao() { return (await sb.auth.getSession()).data.session; },
+      async entrar(email, senha) { ok(await sb.auth.signInWithPassword({ email, password: senha })); },
+      async sair() { await sb.auth.signOut(); },
+      produtos: async () => ok(await sb.from("produtos").select("*").order("time").order("nome")),
+      pendenciasAbertas: async () => ok(await sb.from("pendencias").select("*").eq("status", "aberta").order("entrou_em")),
+      resolvidasRecentes: async () => ok(await sb.from("pendencias").select("*").eq("status", "resolvida")
+        .gte("resolvida_em", new Date(Date.now() - 7 * 86400000).toISOString()).order("resolvida_em", { ascending: false })),
+      combinados: async () => ok(await sb.from("combinados").select("*")
+        .or(`status.eq.aberto,concluido_em.gte.${new Date(new Date().setHours(0, 0, 0, 0)).toISOString()}`)
+        .order("prazo", { ascending: true, nullsFirst: false }).order("criado_em")),
+      sprints: async () => ok(await sb.from("sprints_config").select("*").order("time")),
+      feriados: async () => ok(await sb.from("feriados").select("*").order("data")),
+      links: async () => ok(await sb.from("links_rapidos").select("*").order("ordem").order("id")),
+      regras: async () => ok(await sb.from("regras_classificacao").select("*").order("tipo").order("padrao")),
+      config: async () => Object.fromEntries(ok(await sb.from("configuracoes").select("*")).map((r) => [r.chave, r.valor])),
+      eventos: async () => ok(await sb.from("eventos_kanboard").select("*").order("recebido_em", { ascending: false }).limit(30)),
+      prefixosAbertos: async () => ok(await sb.from("pendencias").select("prefixo").is("produto_id", null).eq("status", "aberta")),
+      async agenda(data) {
+        const s = await this.sessao();
+        const r = await fetch(`${CFG.SUPABASE_URL}/functions/v1/agenda?data=${data}`, {
+          headers: { Authorization: `Bearer ${s.access_token}`, apikey: CFG.SUPABASE_ANON_KEY },
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.erro || `Agenda: erro ${r.status}`);
+        return j;
+      },
+      concluirPendencia: async (id) => ok(await sb.from("pendencias").update({ status: "resolvida", resolvida_em: new Date().toISOString(), resolvida_por: "Painel (manual)" }).eq("id", id)),
+      reabrirPendencia: async (id) => ok(await sb.from("pendencias").update({ status: "aberta", resolvida_em: null, resolvida_por: null, coluna_destino: null }).eq("id", id)),
+      classificarPendencia: async (id, produto) => ok(await sb.from("pendencias").update({
+        produto_id: produto ? produto.id : null, time: produto ? produto.time : null, classificacao_manual: !!produto,
+      }).eq("id", id)),
+      addCombinado: async (c) => ok(await sb.from("combinados").insert(c)),
+      setCombinado: async (id, feito) => ok(await sb.from("combinados").update({ status: feito ? "feito" : "aberto", concluido_em: feito ? new Date().toISOString() : null }).eq("id", id)),
+      delCombinado: async (id) => ok(await sb.from("combinados").delete().eq("id", id)),
+      addRegra: async (r) => { ok(await sb.from("regras_classificacao").insert(r)); ok(await sb.rpc("reaplicar_regras")); },
+      delRegra: async (id) => { ok(await sb.from("regras_classificacao").delete().eq("id", id)); ok(await sb.rpc("reaplicar_regras")); },
+      setProduto: async (id, campos) => ok(await sb.from("produtos").update(campos).eq("id", id)),
+      addProduto: async (p) => ok(await sb.from("produtos").insert(p)),
+      setSprint: async (time, campos) => ok(await sb.from("sprints_config").update(campos).eq("time", time)),
+      addFeriado: async (f) => ok(await sb.from("feriados").upsert(f)),
+      delFeriado: async (data) => ok(await sb.from("feriados").delete().eq("data", data)),
+      addLink: async (l) => ok(await sb.from("links_rapidos").insert(l)),
+      delLink: async (id) => ok(await sb.from("links_rapidos").delete().eq("id", id)),
+      setConfig: async (chave, valor) => ok(await sb.from("configuracoes").upsert({ chave, valor })),
+    };
+  } else {
+    // ---------------- Modo demonstração (memória, nada é salvo) ----------------
+    const hoje = new Date();
+    const horas = (h) => new Date(Date.now() - h * 3600000).toISOString();
+    const emHora = (h, m) => { const d = new Date(); d.setHours(h, m, 0, 0); return d.toISOString(); };
+    const dbd = {
+      produtos: [
+        ["SCI Report Relatórios", "G", 1], ["SCI Report Atendimento", "P", 1], ["SCI Report CND 2.0", "P", 1],
+        ["SCI Report Alvará", "P", 1], ["SCI Report Tarefas", "M", 1], ["RH NET Social", "G", 2],
+        ["APP RH NET", "G", 2], ["SCI APP", "M", 1], ["Integra NET", "P", 1],
+        ["Smart Bank Statement - SBS", "M", 1], ["Integra Contador +", "P", 1],
+      ].map(([nome, tamanho, time], i) => ({ id: i + 1, nome, tamanho, time, ativo: true })),
+      regras: [],
+      config: { coluna_po: "AGUARDANDO PO" },
+      sprints: [{ time: 1, inicio_referencia: "2026-10-12", duracao_dias: 14 }, { time: 2, inicio_referencia: "2026-10-05", duracao_dias: 14 }],
+      feriados: [{ data: "2026-10-12", descricao: "Nossa Senhora Aparecida" }, { data: "2026-11-02", descricao: "Finados" },
+                 { data: "2026-11-20", descricao: "Dia Nacional de Zumbi e da Consciência Negra" }, { data: "2026-12-25", descricao: "Natal" }],
+      links: [{ id: 1, nome: "Kanboard", url: "https://kanboard.sci.com.br", ordem: 1 }],
+      pendencias: [
+        { id: 1, solicitacao_id: 227375, titulo: "(IC+ Situação Fiscal) Criar opção de download em lote dos relatórios", prefixo: "IC+ Situação Fiscal", sprint: "SCI WEB - REFINAMENTO", movido_por: "Exemplo", link: "https://kanboard.sci.com.br/sprint/2427/solicitacao/227375", produto_id: null, time: null, status: "aberta", entrou_em: horas(30) },
+        { id: 2, solicitacao_id: 100001, titulo: "(Exemplo) Card de demonstração classificado à mão", prefixo: "Exemplo", sprint: "EXEMPLO", movido_por: "Exemplo", link: null, produto_id: 5, time: 1, status: "aberta", entrou_em: horas(3) },
+        { id: 3, solicitacao_id: 100002, titulo: "Exemplo de card do Time 2 aguardando validação", prefixo: null, sprint: "EXEMPLO", movido_por: "Exemplo", link: null, produto_id: 6, time: 2, status: "aberta", entrou_em: horas(80) },
+        { id: 4, solicitacao_id: 100003, titulo: "Exemplo de card já resolvido", prefixo: null, sprint: "EXEMPLO", movido_por: "Exemplo", produto_id: 8, time: 1, status: "resolvida", entrou_em: horas(50), resolvida_em: horas(20), resolvida_por: "Exemplo", coluna_destino: "PRIORIZAÇÃO" },
+      ],
+      combinados: [
+        { id: 1, descricao: "Exemplo: retornar ao cliente sobre prazo", com_quem: "Cliente X", canal: "WhatsApp", prazo: ymd(addDias(hoje, -1)), status: "aberto" },
+        { id: 2, descricao: "Exemplo: revisar fluxo no Miro com analista", com_quem: "Analista", canal: "Discord", prazo: ymd(hoje), status: "aberto" },
+        { id: 3, descricao: "Exemplo: preparar pauta da planning", com_quem: null, canal: "Outro", prazo: ymd(addDias(hoje, 3)), status: "aberto" },
+      ],
+      eventos: [{ id: 1, recebido_em: horas(30), solicitacao_id: 227375, de_coluna: "NOVOS", para_coluna: "AGUARDANDO PO", resultado: "pendencia_aberta", erro: null, corpo_bruto: "(exemplo)" }],
+      agenda: [
+        { titulo: "Daily — Time 2 (exemplo)", inicio: emHora(9, 0), fim: emHora(9, 15), dia_inteiro: false, link: null },
+        { titulo: "Daily — Time 1 (exemplo)", inicio: emHora(9, 30), fim: emHora(9, 45), dia_inteiro: false, link: null },
+        { titulo: "Alinhamento com analistas (exemplo)", inicio: emHora(14, 0), fim: emHora(15, 0), dia_inteiro: false, link: null },
+      ],
+    };
+    let seq = 1000;
+    const sleep = () => Promise.resolve();
+    api = {
+      async sessao() { return { demo: true }; },
+      async entrar() {}, async sair() { toast("Modo demonstração"); },
+      produtos: async () => dbd.produtos,
+      pendenciasAbertas: async () => dbd.pendencias.filter((p) => p.status === "aberta"),
+      resolvidasRecentes: async () => dbd.pendencias.filter((p) => p.status === "resolvida"),
+      combinados: async () => dbd.combinados,
+      sprints: async () => dbd.sprints, feriados: async () => dbd.feriados, links: async () => dbd.links,
+      regras: async () => dbd.regras, config: async () => dbd.config, eventos: async () => dbd.eventos,
+      prefixosAbertos: async () => dbd.pendencias.filter((p) => p.status === "aberta" && !p.produto_id).map((p) => ({ prefixo: p.prefixo })),
+      agenda: async () => ({ eventos: dbd.agenda, atualizado_em: new Date().toISOString(), aviso: null }),
+      async concluirPendencia(id) { Object.assign(dbd.pendencias.find((p) => p.id === id), { status: "resolvida", resolvida_em: new Date().toISOString(), resolvida_por: "Painel (manual)" }); },
+      async reabrirPendencia(id) { Object.assign(dbd.pendencias.find((p) => p.id === id), { status: "aberta", resolvida_em: null }); },
+      async classificarPendencia(id, prod) { Object.assign(dbd.pendencias.find((p) => p.id === id), { produto_id: prod?.id ?? null, time: prod?.time ?? null }); },
+      async addCombinado(c) { dbd.combinados.push({ id: ++seq, status: "aberto", ...c }); },
+      async setCombinado(id, feito) { dbd.combinados.find((c) => c.id === id).status = feito ? "feito" : "aberto"; },
+      async delCombinado(id) { dbd.combinados = dbd.combinados.filter((c) => c.id !== id); },
+      async addRegra(r) { dbd.regras.push({ id: ++seq, ...r }); },
+      async delRegra(id) { dbd.regras = dbd.regras.filter((r) => r.id !== id); },
+      async setProduto(id, c) { Object.assign(dbd.produtos.find((p) => p.id === id), c); },
+      async addProduto(p) { dbd.produtos.push({ id: ++seq, ativo: true, ...p }); },
+      async setSprint(time, c) { Object.assign(dbd.sprints.find((s) => s.time === time), c); },
+      async addFeriado(f) { dbd.feriados.push(f); dbd.feriados.sort((a, b) => a.data.localeCompare(b.data)); },
+      async delFeriado(d) { dbd.feriados = dbd.feriados.filter((f) => f.data !== d); },
+      async addLink(l) { dbd.links.push({ id: ++seq, ...l }); },
+      async delLink(id) { dbd.links = dbd.links.filter((l) => l.id !== id); },
+      async setConfig(k, v) { dbd.config[k] = v; await sleep(); },
+    };
+  }
+
+  // ===================================================================
+  // Estado e renderização
+  // ===================================================================
+  const S = { produtos: [], prodPorId: new Map() };
+  const timeNome = (t) => (t ? `Time ${t}` : "Sem time");
+
+  function erro(e) {
+    console.error(e);
+    const b = $("banner-erro");
+    b.textContent = "Erro: " + (e.message || e);
+    b.classList.remove("hidden");
+  }
+  const limparErro = () => $("banner-erro").classList.add("hidden");
+
+  function renderCabecalho() {
+    const agora = new Date();
+    const h = agora.getHours();
+    $("saudacao").textContent = h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
+    const txt = agora.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    $("data-hoje").textContent = txt.charAt(0).toUpperCase() + txt.slice(1);
+  }
+
+  function renderLinks(links) {
+    $("links").innerHTML = links.map((l) => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.nome)} ↗</a>`).join("");
+  }
+
+  function renderSprints(sprints, feriados) {
+    const fer = new Set(feriados.map((f) => f.data));
+    const hoje = parseYmd(hojeStr());
+    $("sprints").innerHTML = sprints.map((cfg) => {
+      const s = sprintAtual(cfg, hoje, fer);
+      const pct = s.total ? Math.round((s.dia / s.total) * 100) : 0;
+      let flag = "";
+      if (s.primeiro) flag = `<span class="flag">1º dia útil da sprint</span>`;
+      else if (s.ultimo) flag = `<span class="flag warn">Último dia útil da sprint</span>`;
+      else if (!s.hojeUtil) flag = `<span class="flag">Hoje não é dia útil</span>`;
+      const cor = cfg.time === 1 ? "var(--t1)" : "var(--t2)";
+      return `<div class="sprint">
+        <div class="row"><h3><span class="dot t${cfg.time}"></span>Time ${cfg.time}</h3>${flag}</div>
+        <div class="bar"><i style="width:${pct}%;background:${cor}"></i></div>
+        <div class="row small"><span><strong>Dia ${s.dia} de ${s.total}</strong> úteis</span>
+        <span class="muted">${fmtCurta(s.inicio)} → ${fmtCurta(s.fim)} · próxima ${fmtCurta(s.proxInicio)}</span></div>
+      </div>`;
+    }).join("");
+  }
+
+  function opcoesProduto(selId) {
+    return `<option value="">— classificar —</option>` +
+      [1, 2].map((t) => `<optgroup label="Time ${t}">` +
+        S.produtos.filter((p) => p.time === t && p.ativo).map((p) =>
+          `<option value="${p.id}" ${p.id === selId ? "selected" : ""}>${esc(p.nome)}</option>`).join("") +
+        `</optgroup>`).join("");
+  }
+
+  function itemPendencia(p, resolvida) {
+    const ag = idade(p.entrou_em);
+    const cls = ag.dias >= 5 ? "older" : ag.dias >= 2 ? "old" : "";
+    const num = p.link ? `<a href="${esc(p.link)}" target="_blank" rel="noopener">#${p.solicitacao_id}</a>` : `#${p.solicitacao_id}`;
+    const meta = resolvida
+      ? `<span>Resolvida ${esc(idade(p.resolvida_em).txt)}</span>${p.coluna_destino ? `<span>→ ${esc(p.coluna_destino)}</span>` : ""}${p.resolvida_por ? `<span>por ${esc(p.resolvida_por)}</span>` : ""}`
+      : `<span class="age ${cls}">${esc(ag.txt)}</span>${p.sprint ? `<span>${esc(p.sprint)}</span>` : ""}${p.movido_por ? `<span>movido por ${esc(p.movido_por)}</span>` : ""}`;
+    const acts = resolvida
+      ? `<button class="btn sm ghost" data-reabrir="${p.id}">Reabrir</button>`
+      : `<select data-classificar="${p.id}" title="Produto">${opcoesProduto(p.produto_id)}</select>
+         <button class="btn sm" data-concluir="${p.id}" title="Marcar como resolvida">Concluir</button>`;
+    return `<div class="item"><div class="main"><div class="tt">${num} · ${esc(p.titulo)}</div><div class="meta">${meta}</div></div><div class="acts">${acts}</div></div>`;
+  }
+
+  function renderPendencias(abertas, resolvidas) {
+    $("pend-count").textContent = abertas.length;
+    $("pend-count").classList.toggle("zero", !abertas.length);
+    const velhas = abertas.filter((p) => idade(p.entrou_em).dias >= 2).length;
+    $("pend-sub").textContent = abertas.length ? (velhas ? `${velhas} há 2+ dias` : "tudo recente") : "";
+
+    if (!abertas.length) {
+      $("pendencias").innerHTML = `<div class="empty">Nada esperando por você. 🎉</div>`;
+    } else {
+      const sem = abertas.filter((p) => !p.produto_id);
+      let html = "";
+      if (sem.length) {
+        html += `<div class="grp"><div class="grp-hd sem">⚠ Sem produto identificado (${sem.length})</div>${sem.map((p) => itemPendencia(p)).join("")}</div>`;
+      }
+      for (const t of [1, 2]) {
+        const doTime = abertas.filter((p) => p.produto_id && S.prodPorId.get(p.produto_id)?.time === t);
+        if (!doTime.length) continue;
+        const porProd = new Map();
+        doTime.forEach((p) => { const k = p.produto_id; porProd.set(k, [...(porProd.get(k) || []), p]); });
+        html += `<div class="grp-hd"><span class="dot t${t}"></span>Time ${t} · ${doTime.length}</div>`;
+        for (const [pid, itens] of porProd) {
+          html += `<div class="grp"><div class="small" style="font-weight:600;margin-top:6px">${esc(S.prodPorId.get(pid)?.nome)}</div>${itens.map((p) => itemPendencia(p)).join("")}</div>`;
+        }
+      }
+      $("pendencias").innerHTML = html;
+    }
+    $("resolvidas-count").textContent = resolvidas.length;
+    $("resolvidas").innerHTML = resolvidas.length ? resolvidas.map((p) => itemPendencia(p, true)).join("") : `<div class="empty small">Nenhuma.</div>`;
+  }
+
+  function renderAgenda(res, falha) {
+    const eventos = res?.eventos;
+    $("ag-count").textContent = eventos ? eventos.length : "–";
+    $("ag-sub").textContent = res?.atualizado_em ? `atualizada às ${fmtHora(res.atualizado_em)}` : "Google Agenda";
+    if (falha) { $("agenda").innerHTML = `<div class="empty small" style="color:var(--danger)">${esc(falha)}</div>`; return; }
+    const aviso = res.aviso ? `<div class="small" style="color:var(--warn);padding:8px 0 4px">${esc(res.aviso)}</div>` : "";
+    if (!eventos.length) { $("agenda").innerHTML = aviso + `<div class="empty">Sem reuniões hoje.</div>`; return; }
+    const agora = Date.now();
+    $("agenda").innerHTML = aviso + eventos.map((e) => {
+      const ini = new Date(e.inicio).getTime(), fim = new Date(e.fim).getTime();
+      const st = e.dia_inteiro ? "" : fim < agora ? "past" : ini <= agora ? "now" : "";
+      const hr = e.dia_inteiro ? "Dia inteiro" : `${fmtHora(e.inicio)}–${fmtHora(e.fim)}`;
+      const link = e.link ? ` · <a href="${esc(e.link)}" target="_blank" rel="noopener">entrar ↗</a>` : "";
+      return `<div class="ev ${st}"><div class="hr">${hr}</div><div class="tt">${esc(e.titulo)}${link}</div></div>`;
+    }).join("");
+  }
+
+  function itemCombinado(c) {
+    const hs = hojeStr();
+    let chip = "";
+    if (c.status !== "feito" && c.prazo) {
+      if (c.prazo < hs) chip = `<span class="chip late">atrasado · ${fmtCurta(parseYmd(c.prazo))}</span>`;
+      else if (c.prazo === hs) chip = `<span class="chip today">hoje</span>`;
+      else chip = `<span class="chip">${fmtCurta(parseYmd(c.prazo))}</span>`;
+    }
+    const extra = [c.com_quem, c.canal, c.produto_id ? S.prodPorId.get(c.produto_id)?.nome : null].filter(Boolean).map(esc).join(" · ");
+    return `<div class="todo ${c.status === "feito" ? "done" : ""}">
+      <input type="checkbox" data-feito="${c.id}" ${c.status === "feito" ? "checked" : ""} aria-label="Concluir">
+      <div class="main">${esc(c.descricao)} ${chip}${extra ? `<div class="small muted">${extra}</div>` : ""}</div>
+      <button class="btn sm ghost" data-del-cb="${c.id}" title="Excluir">✕</button>
+    </div>`;
+  }
+
+  function renderCombinados(lista) {
+    const hs = hojeStr();
+    const abertos = lista.filter((c) => c.status !== "feito");
+    const feitos = lista.filter((c) => c.status === "feito");
+    $("cb-count").textContent = abertos.length;
+    $("cb-count").classList.toggle("zero", !abertos.some((c) => c.prazo && c.prazo <= hs));
+    const grupos = [
+      ["Atrasados", abertos.filter((c) => c.prazo && c.prazo < hs)],
+      ["Hoje", abertos.filter((c) => c.prazo === hs)],
+      ["Próximos", abertos.filter((c) => c.prazo && c.prazo > hs)],
+      ["Sem prazo", abertos.filter((c) => !c.prazo)],
+      ["Feitos hoje", feitos],
+    ];
+    const html = grupos.filter(([, l]) => l.length).map(([n, l]) => `<div class="sub">${n}</div>${l.map(itemCombinado).join("")}`).join("");
+    $("combinados").innerHTML = html || `<div class="empty small">Nenhum combinado em aberto.</div>`;
+  }
+
+  // A agenda é consultada com menos frequência que o resto (o servidor ainda guarda cache de 15 min)
+  const AGENDA_MIN = 10;
+  const ag = { res: null, em: 0, dia: null };
+
+  async function carregarAgenda(forcar) {
+    const hoje = hojeStr();
+    const recente = ag.res && ag.dia === hoje && Date.now() - ag.em < AGENDA_MIN * 60000;
+    if (recente && !forcar) { renderAgenda(ag.res); return; }
+    try {
+      ag.res = await api.agenda(hoje);
+      ag.em = Date.now();
+      ag.dia = hoje;
+      renderAgenda(ag.res);
+    } catch (e) {
+      if (ag.res && ag.dia === hoje) renderAgenda({ ...ag.res, aviso: "Não foi possível atualizar: " + e.message });
+      else renderAgenda(null, "Não foi possível ler a agenda: " + e.message);
+    }
+  }
+
+  async function carregarHoje(forcar = false) {
+    renderCabecalho();
+    limparErro();
+    try {
+      const [produtos, abertas, resolvidas, combinados, sprints, feriados, links] = await Promise.all([
+        api.produtos(), api.pendenciasAbertas(), api.resolvidasRecentes(), api.combinados(), api.sprints(), api.feriados(), api.links(),
+      ]);
+      S.produtos = produtos;
+      S.prodPorId = new Map(produtos.map((p) => [p.id, p]));
+      $("cb-produto").innerHTML = `<option value="">Produto (opcional)</option>` + produtos.filter((p) => p.ativo).map((p) => `<option value="${p.id}">${esc(p.nome)}</option>`).join("");
+      renderLinks(links);
+      renderSprints(sprints, feriados);
+      renderPendencias(abertas, resolvidas);
+      renderCombinados(combinados);
+    } catch (e) { erro(e); }
+
+    await carregarAgenda(forcar);
+  }
+
+  async function carregarConfig() {
+    limparErro();
+    try {
+      const [produtos, regras, config, sprints, feriados, links, eventos, prefixos] = await Promise.all([
+        api.produtos(), api.regras(), api.config(), api.sprints(), api.feriados(), api.links(), api.eventos(), api.prefixosAbertos(),
+      ]);
+      S.produtos = produtos;
+      S.prodPorId = new Map(produtos.map((p) => [p.id, p]));
+
+      $("rg-produto").innerHTML = `<option value="">— produto —</option>` + produtos.map((p) => `<option value="${p.id}">${esc(p.nome)}</option>`).join("");
+      $("regras").innerHTML = regras.length ? regras.map((r) => `<tr>
+          <td>${r.tipo === "prefixo" ? "Prefixo" : "Sprint"}</td><td><code>${esc(r.padrao)}</code></td>
+          <td>${esc(S.prodPorId.get(r.produto_id)?.nome ?? "—")}</td><td>${r.time ? "Time " + r.time : "—"}</td>
+          <td><button class="btn sm ghost" data-del-regra="${r.id}">✕</button></td></tr>`).join("")
+        : `<tr><td colspan="5" class="muted small">Nenhuma regra ainda.</td></tr>`;
+
+      const pref = [...new Set(prefixos.map((p) => p.prefixo).filter(Boolean))];
+      $("prefixos-sem-regra").innerHTML = pref.length
+        ? `<p class="help"><strong>Prefixos em cards sem produto:</strong> ${pref.map((p) => `<code>${esc(p)}</code>`).join(", ")}</p>` : "";
+
+      $("produtos").innerHTML = produtos.map((p) => `<tr>
+          <td>${esc(p.nome)}</td>
+          <td><select data-prod-tam="${p.id}">${["G", "M", "P"].map((t) => `<option ${p.tamanho === t ? "selected" : ""}>${t}</option>`).join("")}</select></td>
+          <td><select data-prod-time="${p.id}">${[1, 2].map((t) => `<option value="${t}" ${p.time === t ? "selected" : ""}>Time ${t}</option>`).join("")}</select></td>
+          <td><input type="checkbox" data-prod-ativo="${p.id}" ${p.ativo ? "checked" : ""}></td></tr>`).join("");
+
+      $("sprints-cfg").innerHTML = sprints.map((s) => `<tr>
+          <td><span class="dot t${s.time}"></span> Time ${s.time}</td>
+          <td><input type="date" data-sp-ini="${s.time}" value="${s.inicio_referencia}"></td>
+          <td><input type="number" min="5" max="35" data-sp-dur="${s.time}" value="${s.duracao_dias}" style="width:80px"></td></tr>`).join("");
+
+      $("feriados").innerHTML = feriados.map((f) => `<tr><td>${fmtCurta(parseYmd(f.data))}/${f.data.slice(0, 4)}</td><td>${esc(f.descricao ?? "")}</td>
+          <td style="width:40px"><button class="btn sm ghost" data-del-fer="${f.data}">✕</button></td></tr>`).join("");
+
+      $("cfg-coluna").value = config.coluna_po ?? "";
+      $("links-cfg").innerHTML = links.map((l) => `<tr><td>${esc(l.nome)}</td><td class="small muted" style="word-break:break-all">${esc(l.url)}</td>
+          <td style="width:40px"><button class="btn sm ghost" data-del-link="${l.id}">✕</button></td></tr>`).join("");
+
+      $("eventos").innerHTML = eventos.length ? eventos.map((e) => `<tr>
+          <td class="small">${new Date(e.recebido_em).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</td>
+          <td>${e.solicitacao_id ?? "—"}</td>
+          <td class="small">${esc(e.de_coluna ?? "—")} → ${esc(e.para_coluna ?? "—")}</td>
+          <td class="small">${e.erro ? `<span class="res-err">${esc(e.erro)}</span>` : `<span class="res-ok">${esc(e.resultado ?? "")}</span>`}
+            <details><summary class="muted">texto bruto</summary><pre class="raw">${esc(e.corpo_bruto)}</pre></details></td></tr>`).join("")
+        : `<tr><td colspan="4" class="muted small">Nenhum evento recebido ainda.</td></tr>`;
+    } catch (e) { erro(e); }
+  }
+
+  // ===================================================================
+  // Interações
+  // ===================================================================
+  let aba = "hoje";
+  function trocarAba(nova) {
+    aba = nova;
+    document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === nova));
+    $("tab-hoje").classList.toggle("hidden", nova !== "hoje");
+    $("tab-config").classList.toggle("hidden", nova !== "config");
+    try { localStorage.setItem("painel-aba", nova); } catch { /* sem storage */ }
+    recarregar();
+  }
+  const recarregar = (forcar = false) => (aba === "hoje" ? carregarHoje(forcar) : carregarConfig());
+
+  async function acao(fn, msg) {
+    try { await fn(); if (msg) toast(msg); await recarregar(); } catch (e) { erro(e); }
+  }
+
+  document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => trocarAba(b.dataset.tab)));
+  $("btn-atualizar").addEventListener("click", () => recarregar(true).then(() => toast("Atualizado")));
+  $("btn-sair").addEventListener("click", async () => { await api.sair(); if (!DEMO) location.reload(); });
+
+  document.addEventListener("click", (ev) => {
+    const t = ev.target.closest("[data-concluir],[data-reabrir],[data-del-cb],[data-del-regra],[data-del-fer],[data-del-link]");
+    if (!t) return;
+    const d = t.dataset;
+    if (d.concluir) acao(() => api.concluirPendencia(+d.concluir), "Pendência concluída");
+    else if (d.reabrir) acao(() => api.reabrirPendencia(+d.reabrir), "Pendência reaberta");
+    else if (d.delCb) acao(() => api.delCombinado(+d.delCb));
+    else if (d.delRegra) acao(() => api.delRegra(+d.delRegra), "Regra removida");
+    else if (d.delFer) acao(() => api.delFeriado(d.delFer));
+    else if (d.delLink) acao(() => api.delLink(+d.delLink));
+  });
+
+  document.addEventListener("change", (ev) => {
+    const t = ev.target, d = t.dataset;
+    if (d.classificar) acao(() => api.classificarPendencia(+d.classificar, S.prodPorId.get(+t.value) || null), "Classificado");
+    else if (d.feito) acao(() => api.setCombinado(+d.feito, t.checked));
+    else if (d.prodTam) acao(() => api.setProduto(+d.prodTam, { tamanho: t.value }));
+    else if (d.prodTime) acao(() => api.setProduto(+d.prodTime, { time: +t.value }));
+    else if (d.prodAtivo) acao(() => api.setProduto(+d.prodAtivo, { ativo: t.checked }));
+    else if (d.spIni) acao(() => api.setSprint(+d.spIni, { inicio_referencia: t.value }), "Sprint atualizada");
+    else if (d.spDur) acao(() => api.setSprint(+d.spDur, { duracao_dias: +t.value }), "Sprint atualizada");
+  });
+
+  $("form-combinado").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const c = {
+      descricao: $("cb-desc").value.trim(),
+      com_quem: $("cb-quem").value.trim() || null,
+      canal: $("cb-canal").value,
+      prazo: $("cb-prazo").value || null,
+      produto_id: $("cb-produto").value ? +$("cb-produto").value : null,
+    };
+    if (!c.descricao) return;
+    acao(() => api.addCombinado(c), "Combinado adicionado").then(() => {
+      $("cb-desc").value = ""; $("cb-quem").value = ""; $("cb-prazo").value = hojeStr(); $("cb-desc").focus();
+    });
+  });
+
+  $("form-regra").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const r = {
+      tipo: $("rg-tipo").value,
+      padrao: $("rg-padrao").value.trim(),
+      produto_id: $("rg-produto").value ? +$("rg-produto").value : null,
+      time: $("rg-time").value ? +$("rg-time").value : null,
+    };
+    if (!r.produto_id && !r.time) { toast("Escolha um produto ou um time"); return; }
+    acao(() => api.addRegra(r), "Regra adicionada e aplicada").then(() => { $("rg-padrao").value = ""; });
+  });
+
+  $("form-produto").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    acao(() => api.addProduto({ nome: $("pd-nome").value.trim(), tamanho: $("pd-tam").value, time: +$("pd-time").value }), "Produto adicionado")
+      .then(() => { $("pd-nome").value = ""; });
+  });
+
+  $("form-feriado").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    acao(() => api.addFeriado({ data: $("fr-data").value, descricao: $("fr-desc").value.trim() || null }), "Feriado adicionado")
+      .then(() => { $("fr-desc").value = ""; });
+  });
+
+  $("form-link").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    acao(() => api.addLink({ nome: $("lk-nome").value.trim(), url: $("lk-url").value.trim(), ordem: 99 }), "Atalho adicionado")
+      .then(() => { $("lk-nome").value = ""; $("lk-url").value = ""; });
+  });
+
+  $("btn-coluna").addEventListener("click", () => acao(() => api.setConfig("coluna_po", $("cfg-coluna").value.trim()), "Coluna salva"));
+
+  $("login-form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    $("login-erro").textContent = "";
+    try {
+      await api.entrar($("login-email").value.trim(), $("login-senha").value);
+      iniciar();
+    } catch (e) {
+      $("login-erro").textContent = e.message === "Invalid login credentials" ? "E-mail ou senha incorretos." : e.message;
+    }
+  });
+
+  // Atualiza sozinho a cada 5 minutos e ao voltar para a aba do navegador
+  setInterval(() => { if (!document.hidden) recarregar(); }, 5 * 60 * 1000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) recarregar(); });
+
+  // ===================================================================
+  // Início
+  // ===================================================================
+  async function iniciar() {
+    const s = await api.sessao();
+    if (!s) { $("login").classList.remove("hidden"); $("app").classList.add("hidden"); return; }
+    $("login").classList.add("hidden");
+    $("app").classList.remove("hidden");
+    $("banner-demo").classList.toggle("hidden", !DEMO);
+    $("cb-prazo").value = hojeStr();
+    let salva = "hoje";
+    try { salva = localStorage.getItem("painel-aba") || "hoje"; } catch { /* sem storage */ }
+    trocarAba(salva === "config" ? "config" : "hoje");
+  }
+  iniciar();
+})();
+</script>
+</body>
+</html>
