@@ -215,7 +215,9 @@ const coluna_ = (s) => String(s || "").trim().toUpperCase();
 function processarMovimentacao_(db, mov) {
   const config = db.obter("config/geral");
   const colunaPo = coluna_(config && config.coluna_po);
-  if (!colunaPo) return "ignorado";
+  if (!colunaPo) {
+    throw new Error("config/geral sem coluna_po: entre no painel uma vez (com o usuário liberado) para gravar os dados iniciais.");
+  }
 
   const abertas = () => db.consultar("pendencias", [["solicitacao_id", mov.solicitacao_id], ["status", "aberta"]]);
 
@@ -420,5 +422,79 @@ function testarWebhook() {
     "**Movido para a coluna**: AGUARDANDO PO",
     "**Movido por**: Teste",
   ].join("\n");
-  Logger.log(JSON.stringify(receberMensagem_(firestore_(), msg)));
+  try {
+    Logger.log(JSON.stringify(receberMensagem_(firestore_(), msg)));
+  } catch (e) {
+    throw new Error(explicarErroFirestore_(e.message));
+  }
+}
+
+// Traduz os erros mais comuns do Firestore em instruções.
+function explicarErroFirestore_(msg) {
+  if (/SCOPE_INSUFFICIENT|insufficient authentication scopes/i.test(msg)) {
+    return "O script não tem permissão de acesso ao Firestore: substitua o appsscript.json pelo do repositório e execute de novo para autorizar.";
+  }
+  if (/SERVICE_DISABLED|has not been used|is disabled/i.test(msg)) {
+    return "A API do Firestore não está ativa para este acesso. Confira o FIREBASE_PROJECT_ID e se o banco foi criado. Detalhe: " + msg;
+  }
+  if (/ 403/.test(msg)) {
+    return "Acesso negado. O script precisa estar na MESMA conta Google dona do projeto Firebase (ou com papel de Proprietário/Editor nele). Detalhe: " + msg;
+  }
+  if (/ 404/.test(msg)) {
+    return "Projeto ou banco não encontrado. Confira o FIREBASE_PROJECT_ID (é o ID, ex.: painel-po-2993a, não o nome) e se o Firestore foi criado. Detalhe: " + msg;
+  }
+  return msg;
+}
+
+// Confere a configuração passo a passo e mostra no log o que está faltando.
+function diagnosticar() {
+  const linhas = [];
+  const ok = (m) => linhas.push("OK    " + m);
+  const falha = (m) => linhas.push("FALHA " + m);
+  try {
+    let cfg;
+    try {
+      cfg = config_();
+    } catch (e) {
+      falha(e.message);
+      return;
+    }
+    if (/^[a-z0-9-]+$/.test(cfg.projeto)) ok("FIREBASE_PROJECT_ID = " + cfg.projeto);
+    else falha("FIREBASE_PROJECT_ID = \"" + cfg.projeto + "\": use o ID do projeto (só letras minúsculas, números e hífen), não o nome.");
+
+    if (cfg.token) ok("WEBHOOK_TOKEN configurado (" + cfg.token.length + " caracteres)");
+    else falha("WEBHOOK_TOKEN não configurado nas propriedades do script.");
+
+    try {
+      ok("Conta que executa o script: " + Session.getEffectiveUser().getEmail());
+    } catch (e) {
+      falha("Não foi possível ler a conta do script (substitua o appsscript.json): " + e.message);
+    }
+
+    if (typeof Calendar === "undefined") {
+      falha("Serviço avançado do Google Agenda não está ativo: substitua o appsscript.json pelo do repositório.");
+    } else {
+      try {
+        Calendar.Events.list(cfg.agendaId, { maxResults: 1, timeMin: new Date().toISOString() });
+        ok("Google Agenda acessível (" + cfg.agendaId + ")");
+      } catch (e) {
+        falha("Google Agenda: " + e.message);
+      }
+    }
+
+    try {
+      const geral = firestore_().obter("config/geral");
+      if (!geral) falha("Firestore acessível, mas config/geral não existe: entre no painel uma vez.");
+      else if (!geral.coluna_po) falha("Firestore acessível, mas config/geral está sem coluna_po.");
+      else ok("Firestore acessível; coluna do PO = \"" + geral.coluna_po + "\"");
+    } catch (e) {
+      falha("Firestore: " + explicarErroFirestore_(e.message));
+    }
+
+    const gatilhos = ScriptApp.getProjectTriggers().filter((t) => t.getHandlerFunction() === "sincronizarAgenda");
+    if (gatilhos.length) ok("Gatilho da agenda instalado");
+    else falha("Gatilho da agenda não instalado: execute a função instalar.");
+  } finally {
+    Logger.log("Diagnóstico do Painel do PO\n" + linhas.join("\n"));
+  }
 }
