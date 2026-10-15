@@ -1,6 +1,7 @@
 <script setup>
 import { House, LogOut, RefreshCw, Settings } from "lucide-vue-next";
 import MarcaPainel from "@/components/ui/MarcaPainel.vue";
+import SeletorTema from "./SeletorTema.vue";
 
 defineProps({
   atualizando: { type: Boolean, default: false },
@@ -34,6 +35,7 @@ defineEmits(["atualizar", "sair"]);
         >
           <RefreshCw :class="{ girando: atualizando }" />
         </button>
+        <SeletorTema />
         <button class="btn ghost icon" type="button" title="Sair" aria-label="Sair" @click="$emit('sair')">
           <LogOut />
         </button>
@@ -76,5 +78,5 @@ defineEmits(["atualizar", "sair"]);
   .marca span { display: none; }
   .abas a { padding: 0 10px; }
 }
-@media (max-width: 380px) { .abas a span { display: none; } }
+@media (max-width: 440px) { .abas a span { display: none; } }
 </style>

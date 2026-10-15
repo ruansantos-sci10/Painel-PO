@@ -153,7 +153,14 @@ npm --prefix web install
 npm --prefix web run dev
 ```
 
-Com o `firebase.config.js` vazio, o painel abre em **modo demonstração** (dados de exemplo em memória, nada é salvo).
+O `npm run dev` usa o Firebase configurado. Para testar sem tocar nos dados reais, use o **modo demonstração** (dados de exemplo em memória, nada é salvo):
+
+```bash
+npm --prefix web run dev:demo
+```
+
+## Tema claro e escuro
+O botão de tema na barra superior (ícone de monitor, sol ou lua) escolhe entre **Sistema** (segue o Windows/navegador), **Claro** e **Escuro**. A escolha fica salva no navegador.
 
 ## Bom saber
 - **Tempo real:** pendências, combinados, configurações e agenda chegam do Firestore na hora, sem recarregar.
