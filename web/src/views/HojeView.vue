@@ -1,14 +1,9 @@
 <script setup>
-import { onMounted } from "vue";
 import ResumoDia from "@/components/hoje/ResumoDia.vue";
 import SprintsResumo from "@/components/hoje/SprintsResumo.vue";
 import PendenciasCard from "@/components/hoje/PendenciasCard.vue";
 import AgendaCard from "@/components/hoje/AgendaCard.vue";
 import CombinadosCard from "@/components/hoje/CombinadosCard.vue";
-import { useAgendaStore } from "@/stores/agenda";
-
-const agenda = useAgendaStore();
-onMounted(() => agenda.carregar());
 </script>
 
 <template>

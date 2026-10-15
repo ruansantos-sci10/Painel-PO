@@ -1,18 +1,24 @@
 <script setup>
 import { computed } from "vue";
-import { CalendarDays, CalendarX2, TriangleAlert, Video } from "lucide-vue-next";
+import { CalendarClock, CalendarDays, CalendarX2, TriangleAlert, Video } from "lucide-vue-next";
 import PainelCard from "@/components/ui/PainelCard.vue";
 import EstadoVazio from "@/components/ui/EstadoVazio.vue";
 import { useRelogio } from "@/composables/useRelogio";
-import { useAgendaStore } from "@/stores/agenda";
+import { DEMO } from "@/services/backend";
+import { useDadosStore } from "@/stores/dados";
 import { fmtHora } from "@/utils/datas";
 
-const agenda = useAgendaStore();
+// O Apps Script atualiza a agenda a cada 15 min; acima disso avisamos que algo parou.
+const ATRASO_MAX_MIN = 45;
+
+const dados = useDadosStore();
 const { agora } = useRelogio();
+
+const res = computed(() => dados.agenda);
 
 const eventos = computed(() => {
   const ms = agora.value.getTime();
-  return (agenda.res?.eventos ?? []).map((e) => {
+  return (res.value?.eventos ?? []).map((e) => {
     const ini = new Date(e.inicio).getTime();
     const fim = new Date(e.fim).getTime();
     return {
@@ -24,21 +30,32 @@ const eventos = computed(() => {
   });
 });
 
-const contador = computed(() => (agenda.res?.eventos ? agenda.res.eventos.length : "–"));
+const aviso = computed(() => {
+  const em = res.value?.atualizado_em;
+  if (DEMO || !em || agora.value.getTime() - new Date(em).getTime() < ATRASO_MAX_MIN * 60000) return "";
+  return `Sem atualização desde as ${fmtHora(em)}. Confira o gatilho do Apps Script.`;
+});
+
+const contador = computed(() => (res.value?.eventos ? res.value.eventos.length : "–"));
 const subtitulo = computed(() =>
-  agenda.res?.atualizado_em ? `atualizada às ${fmtHora(agenda.res.atualizado_em)}` : "Google Agenda");
+  res.value?.atualizado_em ? `atualizada às ${fmtHora(res.value.atualizado_em)}` : "Google Agenda");
 </script>
 
 <template>
   <PainelCard titulo="Agenda de hoje" :icone="CalendarDays" :contador="contador">
     <template #extra>{{ subtitulo }}</template>
 
-    <EstadoVazio v-if="agenda.falha" :icone="TriangleAlert" :texto="agenda.falha" tom="danger" />
-    <div v-else-if="!agenda.res" class="esqueleto" aria-label="Carregando agenda">
+    <EstadoVazio v-if="dados.agendaFalha" :icone="TriangleAlert" :texto="dados.agendaFalha" tom="danger" />
+    <div v-else-if="res === undefined" class="esqueleto" aria-label="Carregando agenda">
       <i v-for="n in 3" :key="n"></i>
     </div>
+    <EstadoVazio
+      v-else-if="res === null"
+      :icone="CalendarClock"
+      texto="A agenda de hoje ainda não foi sincronizada. Confira se o Apps Script está instalado (README, passo 5)."
+    />
     <template v-else>
-      <div v-if="agenda.res.aviso" class="aviso"><TriangleAlert /> {{ agenda.res.aviso }}</div>
+      <div v-if="aviso" class="aviso"><TriangleAlert /> {{ aviso }}</div>
       <EstadoVazio v-if="!eventos.length" :icone="CalendarX2" texto="Sem reuniões hoje." />
       <ol v-else class="linha">
         <li v-for="(e, i) in eventos" :key="i" class="ev" :class="e.estado">

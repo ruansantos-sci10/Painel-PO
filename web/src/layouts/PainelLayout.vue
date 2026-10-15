@@ -1,47 +1,40 @@
 <script setup>
 // Moldura do painel logado: barra superior, avisos, assinaturas de dados e atualização automática.
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import { Info, TriangleAlert, X } from "lucide-vue-next";
 import BarraTopo from "@/components/layout/BarraTopo.vue";
 import { DEMO } from "@/services/backend";
 import { useRelogio } from "@/composables/useRelogio";
-import { useAgendaStore } from "@/stores/agenda";
 import { useDadosStore } from "@/stores/dados";
 import { useSessaoStore } from "@/stores/sessao";
 import { useUiStore } from "@/stores/ui";
 
 const ATUALIZACAO_MIN = 5;
 
-const route = useRoute();
 const router = useRouter();
 const sessao = useSessaoStore();
 const dados = useDadosStore();
-const agenda = useAgendaStore();
 const ui = useUiStore();
 const relogio = useRelogio();
 
 const atualizando = ref(false);
 
-async function atualizar() {
+// Reassina todas as coleções (útil se a conexão caiu) e atualiza o relógio.
+function atualizar() {
   atualizando.value = true;
   ui.limparErro();
   relogio.atualizar();
   dados.iniciar();
-  try {
-    if (route.name === "hoje") await agenda.carregar(true);
-    ui.toast("Atualizado");
-  } finally {
-    atualizando.value = false;
-  }
+  ui.toast("Atualizado");
+  setTimeout(() => { atualizando.value = false; }, 600);
 }
 
-// Os dados chegam em tempo real; aqui só renovamos o que depende do relógio e a agenda.
+// Os dados (inclusive a agenda) chegam em tempo real; aqui só renovamos o que depende do relógio.
 function atualizarSozinho() {
   if (document.hidden) return;
   relogio.atualizar();
   dados.renovarSeMudouODia();
-  if (route.name === "hoje") agenda.carregar();
 }
 
 async function sair() {

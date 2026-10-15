@@ -3,12 +3,10 @@
 import { computed } from "vue";
 import LinksRapidos from "./LinksRapidos.vue";
 import { useRelogio } from "@/composables/useRelogio";
-import { useAgendaStore } from "@/stores/agenda";
 import { useDadosStore } from "@/stores/dados";
 import { dataPorExtenso, saudacao } from "@/utils/datas";
 
 const dados = useDadosStore();
-const agenda = useAgendaStore();
 const { agora, hoje } = useRelogio();
 
 const plural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
@@ -18,7 +16,7 @@ const resumo = computed(() => {
   const pend = dados.pendenciasAbertas.length;
   partes.push(pend ? plural(pend, "card aguardando você", "cards aguardando você") : "nenhum card aguardando você");
 
-  const eventos = agenda.res?.eventos;
+  const eventos = dados.agenda?.eventos;
   if (eventos) {
     const ms = agora.value.getTime();
     const restantes = eventos.filter((e) => !e.dia_inteiro && new Date(e.fim).getTime() > ms).length;

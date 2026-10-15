@@ -6,6 +6,9 @@ rules_version = '2';
 // Só acessa quem estiver logado E tiver um documento em autorizados/{uid}.
 // Esse documento é criado à mão no console do Firebase (veja o README):
 // assim, mesmo que alguém crie uma conta pelo SDK, não enxerga nada.
+//
+// O Google Apps Script grava com a conta dona do projeto (IAM), por isso
+// não passa por estas regras.
 // =====================================================================
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -21,6 +24,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Agenda: escrita só pelo Apps Script; o painel apenas lê.
+    match /agenda/{dia} {
+      allow read: if autorizado();
+      allow write: if false;
+    }
+
     // Coleções do painel
     match /{colecao}/{id} {
       allow read, write: if autorizado() && colecao in [
@@ -28,7 +37,5 @@ service cloud.firestore {
         'links', 'pendencias', 'eventos_kanboard', 'combinados'
       ];
     }
-
-    // cache/agenda e qualquer outra coleção: só as Cloud Functions (Admin SDK) acessam.
   }
 }

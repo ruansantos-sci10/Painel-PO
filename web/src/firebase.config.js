@@ -15,6 +15,3 @@ export const firebaseConfig = {
   messagingSenderId: "",
   appId: "",
 };
-
-// Região onde as Cloud Functions foram publicadas (mesma de functions/src/base.js).
-export const REGIAO_FUNCOES = "southamerica-east1";

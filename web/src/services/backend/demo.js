@@ -21,10 +21,10 @@ export function criarBackendDemo() {
     feriados: FERIADOS_INICIAIS.map((f) => ({ id: f.data, ...f })),
     links: LINKS_INICIAIS.map((l, i) => ({ id: String(i + 1), ...l })),
     pendencias: [
-      { id: "1", solicitacao_id: 227375, titulo: "(IC+ Situação Fiscal) Criar opção de download em lote dos relatórios", prefixo: "IC+ Situação Fiscal", sprint: "SCI WEB - REFINAMENTO", movido_por: "Exemplo", link: "https://kanboard.sci.com.br/sprint/2427/solicitacao/227375", produto_id: null, time: null, status: "aberta", entrou_em: horas(30) },
-      { id: "2", solicitacao_id: 100001, titulo: "(Exemplo) Card de demonstração classificado à mão", prefixo: "Exemplo", sprint: "EXEMPLO", movido_por: "Exemplo", link: null, produto_id: "5", time: 1, status: "aberta", entrou_em: horas(3) },
-      { id: "3", solicitacao_id: 100002, titulo: "Exemplo de card do Time 2 aguardando validação", prefixo: null, sprint: "EXEMPLO", movido_por: "Exemplo", link: null, produto_id: "6", time: 2, status: "aberta", entrou_em: horas(80) },
-      { id: "4", solicitacao_id: 100003, titulo: "Exemplo de card já resolvido", prefixo: null, sprint: "EXEMPLO", movido_por: "Exemplo", produto_id: "8", time: 1, status: "resolvida", entrou_em: horas(50), resolvida_em: horas(20), resolvida_por: "Exemplo", coluna_destino: "PRIORIZAÇÃO" },
+      { id: "1", solicitacao_id: 227375, titulo: "(IC+ Situação Fiscal) Criar opção de download em lote dos relatórios", prefixo: "IC+ Situação Fiscal", sprint: "SCI WEB - REFINAMENTO", movido_por: "Exemplo", link: "https://kanboard.sci.com.br/sprint/2427/solicitacao/227375", produto_id: null, time: null, classificacao_manual: false, status: "aberta", entrou_em: horas(30) },
+      { id: "2", solicitacao_id: 100001, titulo: "(Exemplo) Card de demonstração classificado à mão", prefixo: "Exemplo", sprint: "EXEMPLO", movido_por: "Exemplo", link: null, produto_id: "5", time: 1, classificacao_manual: true, status: "aberta", entrou_em: horas(3) },
+      { id: "3", solicitacao_id: 100002, titulo: "Exemplo de card do Time 2 aguardando validação", prefixo: null, sprint: "EXEMPLO", movido_por: "Exemplo", link: null, produto_id: "6", time: 2, classificacao_manual: true, status: "aberta", entrou_em: horas(80) },
+      { id: "4", solicitacao_id: 100003, titulo: "Exemplo de card já resolvido", prefixo: null, sprint: "EXEMPLO", movido_por: "Exemplo", produto_id: "8", time: 1, classificacao_manual: true, status: "resolvida", entrou_em: horas(50), resolvida_em: horas(20), resolvida_por: "Exemplo", coluna_destino: "PRIORIZAÇÃO" },
     ],
     combinados: [
       { id: "1", descricao: "Exemplo: retornar ao cliente sobre prazo", com_quem: "Cliente X", canal: "WhatsApp", prazo: ymd(addDias(hoje, -1)), status: "aberto", criado_em: horas(48) },
@@ -62,16 +62,19 @@ export function criarBackendDemo() {
       regras: ouvir(() => db.regras),
       config: ouvir(() => db.config),
       eventos: ouvir(() => db.eventos),
+      agenda: ouvir(() => ({ id: ymd(hoje), eventos: db.agenda, atualizado_em: hoje.toISOString() })),
     },
 
     async garantirDadosIniciais() { return false; },
-    async agenda() { return { eventos: copia(db.agenda), atualizado_em: agoraIso(), aviso: null }; },
 
     async concluirPendencia(id) {
       Object.assign(achar("pendencias", id), { status: "resolvida", resolvida_em: agoraIso(), resolvida_por: "Painel (manual)" });
     },
     async reabrirPendencia(p) {
       Object.assign(achar("pendencias", p.id), { status: "aberta", resolvida_em: null, resolvida_por: null, coluna_destino: null });
+    },
+    async aplicarClassificacoes(lista) {
+      lista.forEach((c) => Object.assign(achar("pendencias", c.id), { produto_id: c.produto_id, time: c.time }));
     },
     async classificarPendencia(id, prod) {
       Object.assign(achar("pendencias", id), { produto_id: prod?.id ?? null, time: prod?.time ?? null, classificacao_manual: !!prod });

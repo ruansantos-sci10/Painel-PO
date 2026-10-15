@@ -1,4 +1,5 @@
-// Backend real: Firebase Auth + Firestore (dados em tempo real) + Cloud Functions (agenda e regras).
+// Backend real: Firebase Auth + Firestore (dados em tempo real). Plano Spark, sem Cloud Functions:
+// o webhook do Kanboard e a agenda chegam pelo Google Apps Script (pasta apps-script/).
 
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
@@ -6,17 +7,15 @@ import {
   addDoc, collection, deleteDoc, doc, getDoc, getDocs, getFirestore, limit, onSnapshot, orderBy,
   query, serverTimestamp, setDoc, Timestamp, updateDoc, where, writeBatch,
 } from "firebase/firestore";
-import { getFunctions, httpsCallable } from "firebase/functions";
-import { addDias, inicioDoDia } from "@/utils/datas";
+import { addDias, inicioDoDia, ymd } from "@/utils/datas";
 import {
   CONFIG_INICIAL, FERIADOS_INICIAIS, LINKS_INICIAIS, PRODUTOS_INICIAIS, SPRINTS_INICIAIS,
 } from "../dadosIniciais";
 
-export function criarBackendFirebase(config, regiao) {
+export function criarBackendFirebase(config) {
   const app = initializeApp(config);
   const auth = getAuth(app);
   const db = getFirestore(app);
-  const funcoes = getFunctions(app, regiao);
 
   const col = (nome) => collection(db, nome);
   const ref = (nome, id) => doc(db, nome, String(id));
@@ -33,10 +32,8 @@ export function criarBackendFirebase(config, regiao) {
   const ouvir = (consulta) => (cb, falha) =>
     onSnapshot(consulta(), (s) => cb(s.docs.map(paraObjeto)), falha);
 
-  const chamar = async (nome, dados) => (await httpsCallable(funcoes, nome)(dados)).data;
-
   return {
-    info: { projectId: config.projectId, regiao },
+    info: { projectId: config.projectId },
 
     // ---------------- Sessão ----------------
     observarSessao: (cb) => onAuthStateChanged(auth, (u) => cb(u ? { uid: u.uid, email: u.email } : null)),
@@ -73,6 +70,9 @@ export function criarBackendFirebase(config, regiao) {
       config: (cb, falha) => onSnapshot(ref("config", "geral"),
         (s) => cb(s.exists() ? s.data() : {}), falha),
       eventos: ouvir(() => query(col("eventos_kanboard"), orderBy("recebido_em", "desc"), limit(30))),
+      // Agenda de hoje, copiada do Google Agenda pelo Apps Script a cada 15 min (null = ainda não sincronizada)
+      agenda: (cb, falha) => onSnapshot(ref("agenda", ymd(new Date())),
+        (s) => cb(s.exists() ? paraObjeto(s) : null), falha),
     },
 
     // Grava produtos, sprints, feriados e atalhos na primeira vez que o painel é aberto.
@@ -87,8 +87,6 @@ export function criarBackendFirebase(config, regiao) {
       await b.commit();
       return true;
     },
-
-    agenda: (data) => chamar("agenda", { data }),
 
     // ---------------- Pendências ----------------
     concluirPendencia: (id) => updateDoc(ref("pendencias", id), {
@@ -105,6 +103,12 @@ export function criarBackendFirebase(config, regiao) {
     classificarPendencia: (id, produto) => updateDoc(ref("pendencias", id), {
       produto_id: produto?.id ?? null, time: produto?.time ?? null, classificacao_manual: !!produto,
     }),
+    // Grava a classificação automática (pelas regras) de várias pendências de uma vez.
+    async aplicarClassificacoes(lista) {
+      const b = writeBatch(db);
+      lista.forEach((c) => b.update(ref("pendencias", c.id), { produto_id: c.produto_id, time: c.time }));
+      await b.commit();
+    },
 
     // ---------------- Combinados ----------------
     addCombinado: (c) => addDoc(col("combinados"), {
@@ -116,14 +120,9 @@ export function criarBackendFirebase(config, regiao) {
     delCombinado: (id) => deleteDoc(ref("combinados", id)),
 
     // ---------------- Configurações ----------------
-    async addRegra(r) {
-      await addDoc(col("regras"), { ...r, criado_em: serverTimestamp() });
-      await chamar("reaplicarRegras");
-    },
-    async delRegra(id) {
-      await deleteDoc(ref("regras", id));
-      await chamar("reaplicarRegras");
-    },
+    // A reclassificação das pendências acontece no painel (veja stores/dados.js).
+    addRegra: (r) => addDoc(col("regras"), { ...r, criado_em: serverTimestamp() }),
+    delRegra: (id) => deleteDoc(ref("regras", id)),
     addProduto: (p) => addDoc(col("produtos"), { ...p, ativo: true }),
     setProduto: (id, campos) => updateDoc(ref("produtos", id), campos),
     setSprint: (time, campos) => setDoc(ref("sprints", time), { time, ...campos }, { merge: true }),

@@ -2,9 +2,10 @@
 // As listas brutas chegam das assinaturas; ordenação e filtros ficam nos computed abaixo.
 
 import { defineStore } from "pinia";
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { backend } from "@/services/backend";
 import { TIMES } from "@/services/dadosIniciais";
+import { classificacoesPendentes } from "@/utils/classificacao";
 import { addDias, inicioDoDia, ymd } from "@/utils/datas";
 import { useUiStore } from "./ui";
 
@@ -19,8 +20,10 @@ export const useDadosStore = defineStore("dados", () => {
   const brutos = reactive({
     produtos: [], pendenciasAbertas: [], resolvidas: [], combinados: [],
     sprints: [], feriados: [], links: [], regras: [], config: {}, eventos: [],
+    agenda: undefined, // undefined = carregando; null = ainda não sincronizada pelo Apps Script
   });
   const carregando = ref(true);
+  const agendaFalha = ref("");
   let paradas = [];
   let diaAssinado = null;
 
@@ -34,14 +37,41 @@ export const useDadosStore = defineStore("dados", () => {
     parar();
     diaAssinado = ymd(new Date());
     const faltam = new Set(Object.keys(backend.ouvir));
+    agendaFalha.value = "";
     for (const [nome, ouvir] of Object.entries(backend.ouvir)) {
       paradas.push(ouvir((valor) => {
         brutos[nome] = valor;
         faltam.delete(nome);
         if (!faltam.size) carregando.value = false;
-      }, (e) => ui.mostrarErro(e)));
+      }, (e) => {
+        if (nome === "agenda") agendaFalha.value = "Não foi possível ler a agenda: " + e.message;
+        else ui.mostrarErro(e);
+      }));
     }
   }
+
+  // ---------------- Classificação automática ----------------
+  // O webhook só registra a pendência; o painel aplica as regras e grava o produto/time.
+  // Roda sempre que chegam pendências novas ou mudam as regras/produtos.
+  let classificando = false;
+  let repetir = false;
+  async function classificarPendentes() {
+    if (carregando.value) return;
+    if (classificando) { repetir = true; return; }
+    classificando = true;
+    try {
+      do {
+        repetir = false;
+        const mudancas = classificacoesPendentes(brutos.pendenciasAbertas, brutos.regras, prodPorId.value);
+        if (mudancas.length) await backend.aplicarClassificacoes(mudancas);
+      } while (repetir);
+    } catch (e) {
+      ui.mostrarErro(e);
+    } finally {
+      classificando = false;
+    }
+  }
+  watch(() => [brutos.pendenciasAbertas, brutos.regras, brutos.produtos, carregando.value], classificarPendentes);
 
   async function abrir() {
     try {
@@ -87,6 +117,7 @@ export const useDadosStore = defineStore("dados", () => {
   const regras = computed(() => ordenado(brutos.regras, porTexto("tipo"), porTexto("padrao")));
   const eventos = computed(() => ordenado(brutos.eventos, (a, b) => porTexto("recebido_em")(b, a)));
   const config = computed(() => brutos.config);
+  const agenda = computed(() => brutos.agenda);
 
   // ---------------- Ações ----------------
   const acao = (fn, msg) => ui.executar(fn, msg);
@@ -125,7 +156,7 @@ export const useDadosStore = defineStore("dados", () => {
   const setConfig = (chave, valor, msg) => acao(() => backend.setConfig(chave, valor), msg);
 
   return {
-    carregando, abrir, iniciar, parar, renovarSeMudouODia,
+    carregando, abrir, iniciar, parar, renovarSeMudouODia, agenda, agendaFalha,
     produtos, produtosAtivos, prodPorId, pendenciasAbertas, resolvidas, combinados,
     sprints, feriados, links, regras, eventos, config, times, nomeTime,
     concluirPendencia, reabrirPendencia, classificarPendencia,
