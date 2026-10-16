@@ -30,24 +30,28 @@ const porTime = computed(() => dados.times.map((t) => {
 </script>
 
 <template>
-  <PainelCard titulo="Aguardando você" :icone="Inbox" :contador="abertas.length" :destacar="abertas.length > 0">
+  <PainelCard id="pendencias" titulo="Aguardando você" :icone="Inbox" tom="accent" :contador="abertas.length" :destacar="abertas.length > 0">
     <template v-if="abertas.length" #extra>
       <span v-if="velhas" class="badge warn">{{ velhas }} há 2+ dias</span>
       <span v-else class="badge ok">tudo recente</span>
     </template>
 
-    <EstadoVazio v-if="!abertas.length" :icone="PartyPopper" texto="Nada esperando por você." tom="ok" />
+    <EstadoVazio v-if="!abertas.length" :icone="PartyPopper" texto="Tudo em dia! Nada esperando por você." tom="ok" />
     <template v-else>
       <section v-if="semProduto.length" class="grupo sem">
         <h3 class="eyebrow"><TriangleAlert /> Sem produto identificado · {{ semProduto.length }}</h3>
-        <PendenciaItem v-for="p in semProduto" :key="p.id" :pendencia="p" />
+        <TransitionGroup name="lista" tag="div">
+          <PendenciaItem v-for="p in semProduto" :key="p.id" :pendencia="p" />
+        </TransitionGroup>
       </section>
 
       <section v-for="g in porTime" :key="g.time" class="grupo">
         <h3 class="eyebrow"><span class="dot" :class="`t${g.time}`"></span>{{ g.nome }} · {{ g.total }}</h3>
         <div v-for="prod in g.produtos" :key="prod.id" class="produto">
           <div class="nome-produto">{{ prod.nome }}</div>
-          <PendenciaItem v-for="p in prod.itens" :key="p.id" :pendencia="p" />
+          <TransitionGroup name="lista" tag="div">
+            <PendenciaItem v-for="p in prod.itens" :key="p.id" :pendencia="p" />
+          </TransitionGroup>
         </div>
       </section>
     </template>
@@ -64,7 +68,7 @@ const porTime = computed(() => dados.times.map((t) => {
 .grupo + .grupo { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
 .grupo.sem .eyebrow { color: var(--warn); }
 .eyebrow svg { width: 13px; height: 13px; }
-.nome-produto { font-size: 12.5px; font-weight: 600; color: var(--text-2); margin: 8px 0 0; }
+.nome-produto { font-size: 13px; font-weight: 700; color: var(--text); margin: 10px 0 2px; }
 .resolvidas { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
 .resolvidas summary {
   list-style: none; cursor: pointer; display: flex; align-items: center; gap: 6px;

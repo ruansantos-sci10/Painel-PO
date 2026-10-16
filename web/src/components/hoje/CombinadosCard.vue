@@ -48,7 +48,7 @@ const urgente = computed(() => abertos.value.some((c) => c.prazo && c.prazo <= h
 </script>
 
 <template>
-  <PainelCard titulo="Combinados e lembretes" :icone="ListTodo" :contador="abertos.length" :destacar="urgente">
+  <PainelCard id="combinados" titulo="Combinados e lembretes" :icone="ListTodo" tom="amber" :contador="abertos.length" :destacar="urgente">
     <form class="novo" autocomplete="off" @submit.prevent="adicionar">
       <div class="principal">
         <input
@@ -76,7 +76,9 @@ const urgente = computed(() => abertos.value.some((c) => c.prazo && c.prazo <= h
 
     <section v-for="[nome, lista, tom] in grupos" :key="nome">
       <h3 class="eyebrow" :class="tom">{{ nome }} · {{ lista.length }}</h3>
-      <CombinadoItem v-for="c in lista" :key="c.id" :combinado="c" />
+      <TransitionGroup name="lista" tag="div">
+        <CombinadoItem v-for="c in lista" :key="c.id" :combinado="c" />
+      </TransitionGroup>
     </section>
     <EstadoVazio v-if="!grupos.length" texto="Nenhum combinado em aberto." compacto />
   </PainelCard>

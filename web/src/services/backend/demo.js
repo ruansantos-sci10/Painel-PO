@@ -17,6 +17,7 @@ export function criarBackendDemo() {
     produtos: PRODUTOS_INICIAIS.map((p, i) => ({ id: String(i + 1), ativo: true, ...p })),
     regras: [],
     config: { ...CONFIG_INICIAL },
+    aparencia: {},
     sprints: SPRINTS_INICIAIS.map((s) => ({ id: String(s.time), ...s })),
     feriados: FERIADOS_INICIAIS.map((f) => ({ id: f.data, ...f })),
     links: LINKS_INICIAIS.map((l, i) => ({ id: String(i + 1), ...l })),
@@ -61,6 +62,7 @@ export function criarBackendDemo() {
       links: ouvir(() => db.links),
       regras: ouvir(() => db.regras),
       config: ouvir(() => db.config),
+      aparencia: ouvir(() => db.aparencia),
       eventos: ouvir(() => db.eventos),
       agenda: ouvir(() => ({ id: ymd(hoje), eventos: db.agenda, atualizado_em: hoje.toISOString() })),
     },
@@ -96,5 +98,14 @@ export function criarBackendDemo() {
     async addLink(l) { db.links.push({ id: novoId(), ...l }); },
     async delLink(id) { db.links = db.links.filter((l) => l.id !== id); },
     async setConfig(k, v) { db.config[k] = v; },
+    async setAparencia(campos, substituir = false) {
+      if (substituir) { db.aparencia = copia(campos); return; }
+      const atual = db.aparencia;
+      db.aparencia = {
+        ...atual, ...campos,
+        cores_times: { ...atual.cores_times, ...campos.cores_times },
+        blocos: { ...atual.blocos, ...campos.blocos },
+      };
+    },
   };
 }

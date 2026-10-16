@@ -18,7 +18,7 @@ async function adicionar() {
 </script>
 
 <template>
-  <PainelCard titulo="Produtos" :icone="Package" :contador="dados.produtos.length">
+  <PainelCard titulo="Produtos" :icone="Package" tom="amber" :contador="dados.produtos.length">
     <div class="table-wrap">
       <table>
         <thead><tr><th>Produto</th><th>Tam.</th><th>Time</th><th class="ativo">Ativo</th></tr></thead>

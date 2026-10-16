@@ -37,13 +37,26 @@ const aviso = computed(() => {
 });
 
 const contador = computed(() => (res.value?.eventos ? res.value.eventos.length : "–"));
+// "Próxima em 25 min" quando a reunião começa em até 2 horas
+const proxima = computed(() => {
+  const ms = agora.value.getTime();
+  const e = (res.value?.eventos ?? []).find((x) => !x.dia_inteiro && new Date(x.inicio).getTime() > ms);
+  if (!e) return "";
+  const min = Math.round((new Date(e.inicio).getTime() - ms) / 60000);
+  if (min > 120) return "";
+  return min < 60 ? `próxima em ${min} min` : `próxima em ${Math.floor(min / 60)}h${String(min % 60).padStart(2, "0")}`;
+});
+
 const subtitulo = computed(() =>
   res.value?.atualizado_em ? `atualizada às ${fmtHora(res.value.atualizado_em)}` : "Google Agenda");
 </script>
 
 <template>
-  <PainelCard titulo="Agenda de hoje" :icone="CalendarDays" :contador="contador">
-    <template #extra>{{ subtitulo }}</template>
+  <PainelCard id="agenda" titulo="Agenda de hoje" :icone="CalendarDays" tom="sky" :contador="contador">
+    <template #extra>
+      <span v-if="proxima" class="badge accent">{{ proxima }}</span>
+      <span v-else>{{ subtitulo }}</span>
+    </template>
 
     <EstadoVazio v-if="dados.agendaFalha" :icone="TriangleAlert" :texto="dados.agendaFalha" tom="danger" />
     <div v-else-if="res === undefined" class="esqueleto" aria-label="Carregando agenda">
@@ -79,7 +92,7 @@ const subtitulo = computed(() =>
 
 <style scoped>
 .linha { list-style: none; margin: 4px 0 0; padding: 0; }
-.ev { position: relative; display: grid; grid-template-columns: 52px 14px 1fr; gap: 10px; padding: 8px 0; }
+.ev { position: relative; display: grid; grid-template-columns: 52px 14px 1fr; gap: 10px; padding: calc(var(--pad-item) - 3px) 0; }
 .hora { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; font-size: 13px; line-height: 1.3; }
 .hora small { display: block; font-weight: 400; color: var(--faint); font-size: 11.5px; }
 .marco { position: relative; display: block; }
@@ -100,6 +113,7 @@ const subtitulo = computed(() =>
 .ev.past { opacity: .5; }
 .ev.past .marco::before { background: var(--border-strong); }
 .ev.now .hora { color: var(--accent-text); }
+.ev.now .corpo { background: var(--accent-soft); margin: -4px 0; padding: 4px 10px; border-radius: 10px; }
 .ev.now .marco::before { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
 .ev.dia .hora { color: var(--muted); font-size: 12px; }
 .ev.dia .marco::before { border-radius: 3px; border-color: var(--t2); }

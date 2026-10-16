@@ -12,6 +12,7 @@ const dados = useDadosStore();
   <PainelCard
     titulo="Eventos recebidos do Kanboard"
     :icone="Activity"
+    tom="slate"
     descricao="Confira se o webhook está chegando e sendo entendido. O texto bruto fica guardado."
   >
     <template #extra>últimos 30</template>

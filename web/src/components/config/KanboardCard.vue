@@ -38,7 +38,7 @@ async function copiar() {
 </script>
 
 <template>
-  <PainelCard titulo="Kanboard" :icone="SquareKanban" descricao="Como o painel reconhece os cards que chegam para você.">
+  <PainelCard titulo="Kanboard" :icone="SquareKanban" tom="sky" descricao="Como o painel reconhece os cards que chegam para você.">
     <label class="rotulo" for="cfg-coluna">Nome da coluna do PO (exatamente como aparece na mensagem)</label>
     <form class="form-row campo" @submit.prevent="salvarColuna">
       <input id="cfg-coluna" v-model="coluna" type="text">

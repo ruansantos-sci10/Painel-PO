@@ -10,4 +10,15 @@ export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
+  build: {
+    rollupOptions: {
+      // Firebase e Vue mudam pouco: ficam em arquivos próprios, que o navegador reaproveita entre publicações
+      output: {
+        manualChunks: {
+          firebase: ["firebase/app", "firebase/auth", "firebase/firestore"],
+          vue: ["vue", "vue-router", "pinia"],
+        },
+      },
+    },
+  },
 });

@@ -36,7 +36,7 @@ function usarPrefixo(p) {
 </script>
 
 <template>
-  <PainelCard titulo="Regras de classificação" :icone="Tags" :contador="dados.regras.length">
+  <PainelCard titulo="Regras de classificação" :icone="Tags" tom="violet" :contador="dados.regras.length">
     <p class="help">
       Como o painel descobre o produto/time de cada card.
       <strong>Prefixo</strong>: o texto entre parênteses no início do título começa com o padrão

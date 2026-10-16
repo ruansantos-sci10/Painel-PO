@@ -67,6 +67,8 @@ export function criarBackendFirebase(config) {
       feriados: ouvir(() => col("feriados")),
       links: ouvir(() => col("links")),
       regras: ouvir(() => col("regras")),
+      aparencia: (cb, falha) => onSnapshot(ref("config", "aparencia"),
+        (s) => cb(s.exists() ? s.data() : {}), falha),
       config: (cb, falha) => onSnapshot(ref("config", "geral"),
         (s) => cb(s.exists() ? s.data() : {}), falha),
       eventos: ouvir(() => query(col("eventos_kanboard"), orderBy("recebido_em", "desc"), limit(30))),
@@ -131,5 +133,7 @@ export function criarBackendFirebase(config) {
     addLink: (l) => addDoc(col("links"), { ...l, criado_em: serverTimestamp() }),
     delLink: (id) => deleteDoc(ref("links", id)),
     setConfig: (chave, valor) => setDoc(ref("config", "geral"), { [chave]: valor }, { merge: true }),
+    // Personalização (veja services/aparencia.js); substituir = true troca o documento inteiro
+    setAparencia: (campos, substituir = false) => setDoc(ref("config", "aparencia"), campos, { merge: !substituir }),
   };
 }

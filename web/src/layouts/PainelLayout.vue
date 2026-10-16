@@ -4,6 +4,8 @@ import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Info, TriangleAlert, X } from "lucide-vue-next";
 import BarraTopo from "@/components/layout/BarraTopo.vue";
+import PainelPersonalizar from "@/components/personalizar/PainelPersonalizar.vue";
+import { aplicarAparencia } from "@/services/aparencia";
 import { DEMO } from "@/services/backend";
 import { useRelogio } from "@/composables/useRelogio";
 import { useDadosStore } from "@/stores/dados";
@@ -19,6 +21,7 @@ const ui = useUiStore();
 const relogio = useRelogio();
 
 const atualizando = ref(false);
+const personalizando = ref(false);
 
 // Reassina todas as coleções (útil se a conexão caiu) e atualiza o relógio.
 function atualizar() {
@@ -57,6 +60,9 @@ onBeforeUnmount(() => {
   dados.parar();
 });
 
+// Cores, densidade e cache da aparência, assim que chegam do Firestore
+watch(() => dados.aparenciaPronta && dados.aparencia, (ap) => { if (ap) aplicarAparencia(ap); }, { immediate: true });
+
 watch(() => sessao.usuario, (u) => {
   if (!u) router.replace({ name: "login" });
 });
@@ -68,6 +74,7 @@ watch(() => sessao.usuario, (u) => {
     :email="DEMO ? '' : sessao.usuario?.email ?? ''"
     @atualizar="atualizar"
     @sair="sair"
+    @personalizar="personalizando = true"
   />
 
   <main class="wrap">
@@ -75,7 +82,6 @@ watch(() => sessao.usuario, (u) => {
       <Info />
       <div class="texto">
         <strong>Modo demonstração.</strong> Os dados são exemplos e nada é salvo.
-        Preencha <code>web/src/firebase.config.js</code> para conectar ao seu Firebase.
       </div>
     </div>
     <div v-if="ui.erro" class="alert danger" role="alert">
@@ -86,10 +92,13 @@ watch(() => sessao.usuario, (u) => {
 
     <RouterView />
   </main>
+
+  <PainelPersonalizar :aberto="personalizando" @fechar="personalizando = false" />
 </template>
 
 <style scoped>
 .wrap { max-width: 1240px; margin: 0 auto; padding: 26px 20px 56px; }
+.wrap > .alert { margin-bottom: var(--gap); }
 .fechar { color: inherit; margin: -5px -6px -5px 0; }
 @media (max-width: 560px) { .wrap { padding: 18px 12px 40px; } }
 </style>

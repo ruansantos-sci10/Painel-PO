@@ -29,6 +29,7 @@ const semana = (data) => {
   <PainelCard
     titulo="Feriados"
     :icone="CalendarOff"
+    tom="rose"
     :contador="dados.feriados.length"
     descricao="Inclua os estaduais e municipais que a empresa respeita."
   >

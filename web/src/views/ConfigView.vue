@@ -48,10 +48,10 @@ import EventosCard from "@/components/config/EventosCard.vue";
 
 <style scoped>
 .topo { margin-bottom: 8px; }
-h1 { margin: 0 0 4px; font-size: 28px; font-weight: 700; letter-spacing: -.03em; }
+h1 { margin: 0 0 4px; font-size: 32px; font-weight: 800; letter-spacing: -.025em; }
 .topo p { margin: 0; color: var(--text-2); font-size: 14.5px; }
 .secao { margin-top: 26px; }
-h2 { margin: 0 0 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
-.grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: 18px; align-items: start; }
+h2 { margin: 0 0 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+.grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: var(--gap); align-items: start; }
 @media (max-width: 560px) { h1 { font-size: 24px; } }
 </style>

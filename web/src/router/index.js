@@ -10,6 +10,8 @@ import ConfigView from "@/views/ConfigView.vue";
 
 const router = createRouter({
   history: createWebHashHistory(),
+  // Trocar de aba volta ao topo; voltar/avançar no navegador mantém a posição
+  scrollBehavior: (to, from, salva) => salva ?? { top: 0 },
   routes: [
     { path: "/login", name: "login", component: LoginView },
     {

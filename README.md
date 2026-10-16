@@ -37,6 +37,7 @@ Google Agenda ──(a cada 15 min)──┘                                    
 | `produtos` | nome, tamanho (G/M/P), time (1/2), ativo |
 | `regras` | tipo (`prefixo`/`sprint`), padrão, produto_id, time |
 | `config/geral` | `coluna_po` (coluna do PO no Kanboard) e `url_web_app` (URL do Apps Script) |
+| `config/aparencia` | personalização visual (cores, capa, saudação, blocos, densidade) |
 | `sprints/{time}` | nome do time (editável), início de referência e duração |
 | `feriados/{AAAA-MM-DD}` | descrição |
 | `links` | atalhos do topo |
@@ -159,8 +160,20 @@ O `npm run dev` usa o Firebase configurado. Para testar sem tocar nos dados reai
 npm --prefix web run dev:demo
 ```
 
-## Tema claro e escuro
-O botão de tema na barra superior (ícone de monitor, sol ou lua) escolhe entre **Sistema** (segue o Windows/navegador), **Claro** e **Escuro**. A escolha fica salva no navegador.
+## Personalização
+O botão **Personalizar** (ícone de paleta, na barra superior) abre uma gaveta para deixar o painel com a sua cara:
+
+| Opção | O que muda |
+|---|---|
+| **Você** | Nome e emoji da saudação ("Boa tarde, Ruan 👋") |
+| **Tema** | Sistema, Claro ou Escuro (também no ícone de monitor/sol/lua da barra) |
+| **Cor de destaque** | Botões, links, marca do painel e a capa "Cor de destaque" |
+| **Capa da tela Hoje** | Fundo da abertura: cor de destaque, Aurora, Oceano, Pôr do sol, Floresta, Grafite ou sem capa |
+| **Cores dos times** | Cor de cada time nos cards de sprint, marcadores e etiquetas |
+| **Tela Hoje** | Mostrar/ocultar links, sprints, agenda e combinados; pendências à esquerda ou à direita |
+| **Densidade** | Confortável ou Compacta (mais itens na tela) |
+
+As escolhas ficam em `config/aparencia` no Firestore e valem em qualquer dispositivo. O tema claro/escuro é por navegador. **Restaurar padrão** volta tudo ao original.
 
 ## Bom saber
 - **Tempo real:** pendências, combinados, configurações e agenda chegam do Firestore na hora, sem recarregar.

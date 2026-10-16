@@ -4,6 +4,7 @@
 import { defineStore } from "pinia";
 import { computed, reactive, ref, watch } from "vue";
 import { backend } from "@/services/backend";
+import { APARENCIA_PADRAO, completarAparencia } from "@/services/aparencia";
 import { TIMES } from "@/services/dadosIniciais";
 import { classificacoesPendentes } from "@/utils/classificacao";
 import { addDias, inicioDoDia, ymd } from "@/utils/datas";
@@ -20,6 +21,7 @@ export const useDadosStore = defineStore("dados", () => {
   const brutos = reactive({
     produtos: [], pendenciasAbertas: [], resolvidas: [], combinados: [],
     sprints: [], feriados: [], links: [], regras: [], config: {}, eventos: [],
+    aparencia: undefined, // undefined = ainda não chegou (mantém o que o index.html aplicou do cache)
     agenda: undefined, // undefined = carregando; null = ainda não sincronizada pelo Apps Script
   });
   const carregando = ref(true);
@@ -117,6 +119,8 @@ export const useDadosStore = defineStore("dados", () => {
   const regras = computed(() => ordenado(brutos.regras, porTexto("tipo"), porTexto("padrao")));
   const eventos = computed(() => ordenado(brutos.eventos, (a, b) => porTexto("recebido_em")(b, a)));
   const config = computed(() => brutos.config);
+  const aparencia = computed(() => completarAparencia(brutos.aparencia));
+  const aparenciaPronta = computed(() => brutos.aparencia !== undefined);
   const agenda = computed(() => brutos.agenda);
 
   // ---------------- Ações ----------------
@@ -154,6 +158,9 @@ export const useDadosStore = defineStore("dados", () => {
   const addLink = (l) => acao(() => backend.addLink(l), "Atalho adicionado");
   const delLink = (id) => acao(() => backend.delLink(id));
   const setConfig = (chave, valor, msg) => acao(() => backend.setConfig(chave, valor), msg);
+  // Personalização: salva em silêncio (a mudança já aparece na tela)
+  const setAparencia = (campos) => acao(() => backend.setAparencia(campos));
+  const restaurarAparencia = () => acao(() => backend.setAparencia(APARENCIA_PADRAO, true), "Aparência restaurada");
 
   return {
     carregando, abrir, iniciar, parar, renovarSeMudouODia, agenda, agendaFalha,
@@ -162,6 +169,6 @@ export const useDadosStore = defineStore("dados", () => {
     concluirPendencia, reabrirPendencia, classificarPendencia,
     addCombinado, setCombinado, delCombinado,
     addRegra, delRegra, addProduto, setProduto, setSprint, renomearTime,
-    addFeriado, delFeriado, addLink, delLink, setConfig,
+    addFeriado, delFeriado, addLink, delLink, setConfig, aparencia, aparenciaPronta, setAparencia, restaurarAparencia,
   };
 });

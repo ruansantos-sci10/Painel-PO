@@ -7,15 +7,22 @@
     <title>Painel do PO</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <script>
-      // Aplica o tema escolhido antes de desenhar a página (veja src/composables/useTema.js)
+      // Aplica tema, cores e densidade escolhidos antes de desenhar a página
+      // (veja src/composables/useTema.js e src/services/aparencia.js)
       try {
+        var raiz = document.documentElement;
         var tema = { claro: "light", escuro: "dark" }[localStorage.getItem("painel-tema")];
-        if (tema) document.documentElement.dataset.theme = tema;
-      } catch (e) { /* sem storage: segue o sistema */ }
+        if (tema) raiz.dataset.theme = tema;
+        var ap = JSON.parse(localStorage.getItem("painel-aparencia") || "null");
+        if (ap) {
+          for (var k in ap.vars) raiz.style.setProperty(k, ap.vars[k]);
+          if (ap.densidade) raiz.dataset.densidade = ap.densidade;
+        }
+      } catch (e) { /* sem storage: usa o padrão */ }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet">
   </head>
   <body>
     <div id="app"></div>

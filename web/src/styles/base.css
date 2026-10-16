@@ -1,110 +1,156 @@
 /* =====================================================================
    Painel do PO — design tokens e estilos compartilhados
    Estilos específicos de cada bloco ficam nos próprios componentes (.vue).
+
+   Cores personalizáveis: --accent-base, --t1-base e --t2-base chegam do painel
+   "Personalizar" (services/aparencia.js). Todo o resto é derivado delas com
+   color-mix, então qualquer cor escolhida funciona nos temas claro e escuro.
    ===================================================================== */
 
 :root {
-  --bg: #f6f7f9;
-  --surface: #ffffff;
-  --surface-2: #f3f4f7;
-  --surface-3: #eceef2;
-  --border: #e7e9ee;
-  --border-strong: #d5d9e0;
-  --text: #111827;
-  --text-2: #374151;
-  --muted: #6b7280;
-  --faint: #9ca3af;
+  color-scheme: light;
 
-  --accent: #4f6bed;
-  --accent-hover: #3f5ae0;
-  --accent-soft: #eef1fe;
-  --accent-text: #3b52c4;
+  --accent-base: #4f6bed;
+  --t1-base: #4f6bed;
+  --t2-base: #7c3aed;
+
+  --bg: #f5f6f9;
+  --surface: #ffffff;
+  --surface-2: #f2f4f7;
+  --surface-3: #e9ecf1;
+  --border: #e5e8ee;
+  --border-strong: #d3d8e0;
+  --text: #0f172a;
+  --text-2: #334155;
+  --muted: #64748b;
+  --faint: #94a3b8;
+
+  --accent: var(--accent-base);
+  --accent-hover: color-mix(in srgb, var(--accent-base) 86%, black);
+  --accent-soft: color-mix(in srgb, var(--accent-base) 10%, white);
+  --accent-text: color-mix(in srgb, var(--accent-base) 84%, black);
   --on-accent: #ffffff;
 
+  --t1: var(--t1-base);
+  --t1-soft: color-mix(in srgb, var(--t1-base) 11%, white);
+  --t2: var(--t2-base);
+  --t2-soft: color-mix(in srgb, var(--t2-base) 11%, white);
+
   --warn: #b45309;
-  --warn-soft: #fef5e7;
+  --warn-soft: #fef4e6;
   --danger: #dc2626;
   --danger-soft: #fdecec;
   --ok: #15803d;
-  --ok-soft: #e9f7ee;
+  --ok-soft: #e8f6ed;
 
-  --t1: #4f6bed;
-  --t1-soft: #eef1fe;
-  --t2: #9b51e0;
-  --t2-soft: #f5edfd;
+  /* Matizes dos ícones dos cartões */
+  --hue-sky: #0284c7;
+  --hue-amber: #d97706;
+  --hue-green: #059669;
+  --hue-rose: #e11d48;
+  --hue-violet: #7c3aed;
+  --hue-slate: #475569;
 
-  --shadow-sm: 0 1px 2px rgba(17, 24, 39, .04);
-  --shadow: 0 1px 2px rgba(17, 24, 39, .04), 0 4px 16px -6px rgba(17, 24, 39, .08);
-  --shadow-lg: 0 12px 32px -8px rgba(17, 24, 39, .22);
-  --ring: 0 0 0 3px rgba(79, 107, 237, .22);
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, .05);
+  --shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 6px 20px -8px rgba(15, 23, 42, .10);
+  --shadow-hover: 0 2px 4px rgba(15, 23, 42, .05), 0 12px 28px -10px rgba(15, 23, 42, .18);
+  --shadow-lg: 0 18px 40px -10px rgba(15, 23, 42, .28);
+  --ring: 0 0 0 3px color-mix(in srgb, var(--accent-base) 24%, transparent);
+  --glow: color-mix(in srgb, var(--accent-base) 9%, transparent);
 
   --radius-sm: 8px;
   --radius: 10px;
-  --radius-lg: 16px;
+  --radius-lg: 18px;
 
-  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  color-scheme: light;
-  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  /* Densidade (Personalizar → Densidade) */
+  --pad-card: 20px;
+  --pad-item: 11px;
+  --gap: 18px;
+
+  --font: "Exo 2", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
 
-/* Tema escuro: segue o sistema, a menos que o tema seja escolhido no botão da barra (data-theme no <html>). */
+:root[data-densidade="compacta"] {
+  --pad-card: 15px;
+  --pad-item: 7px;
+  --gap: 12px;
+}
+
+/* Tema escuro: segue o sistema, a menos que o tema seja escolhido no painel (data-theme no <html>). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #0d0f13;
-    --surface: #15181e;
-    --surface-2: #1b1f26;
-    --surface-3: #232831;
-    --border: #252a33;
-    --border-strong: #343a45;
-    --text: #eef0f3;
-    --text-2: #cdd1d8;
-    --muted: #949aa5;
-    --faint: #6b717c;
-  
-    --accent: #7b91f7;
-    --accent-hover: #93a5f9;
-    --accent-soft: #1e2645;
-    --accent-text: #a5b4fc;
-    --on-accent: #0d0f13;
-  
+
+    --bg: #0b0d12;
+    --surface: #13161d;
+    --surface-2: #1a1e27;
+    --surface-3: #222733;
+    --border: #232833;
+    --border-strong: #323946;
+    --text: #eef1f6;
+    --text-2: #cbd2dc;
+    --muted: #8f98a8;
+    --faint: #657080;
+
+    --accent: color-mix(in srgb, var(--accent-base) 68%, white);
+    --accent-hover: color-mix(in srgb, var(--accent-base) 56%, white);
+    --accent-soft: color-mix(in srgb, var(--accent-base) 22%, #13161d);
+    --accent-text: color-mix(in srgb, var(--accent-base) 52%, white);
+    --on-accent: #0b0d12;
+
+    --t1: color-mix(in srgb, var(--t1-base) 68%, white);
+    --t1-soft: color-mix(in srgb, var(--t1-base) 22%, #13161d);
+    --t2: color-mix(in srgb, var(--t2-base) 68%, white);
+    --t2-soft: color-mix(in srgb, var(--t2-base) 22%, #13161d);
+
     --warn: #f5b454;
     --warn-soft: #33260f;
     --danger: #f87171;
     --danger-soft: #3a1719;
     --ok: #4ade80;
     --ok-soft: #12291b;
-  
-    --t1: #7b91f7;
-    --t1-soft: #1e2645;
-    --t2: #c08af5;
-    --t2-soft: #2a1d3d;
-  
+
+    --hue-sky: #38bdf8;
+    --hue-amber: #fbbf24;
+    --hue-green: #34d399;
+    --hue-rose: #fb7185;
+    --hue-violet: #a78bfa;
+    --hue-slate: #94a3b8;
+
     --shadow-sm: none;
-    --shadow: 0 0 0 1px rgba(255, 255, 255, .02);
-    --shadow-lg: 0 16px 40px -8px rgba(0, 0, 0, .6);
-    --ring: 0 0 0 3px rgba(123, 145, 247, .28);
+    --shadow: 0 0 0 1px rgba(255, 255, 255, .015);
+    --shadow-hover: 0 0 0 1px rgba(255, 255, 255, .04), 0 12px 28px -10px rgba(0, 0, 0, .7);
+    --shadow-lg: 0 18px 44px -8px rgba(0, 0, 0, .7);
+    --ring: 0 0 0 3px color-mix(in srgb, var(--accent-base) 40%, transparent);
+    --glow: color-mix(in srgb, var(--accent-base) 16%, transparent);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0d0f13;
-  --surface: #15181e;
-  --surface-2: #1b1f26;
-  --surface-3: #232831;
-  --border: #252a33;
-  --border-strong: #343a45;
-  --text: #eef0f3;
-  --text-2: #cdd1d8;
-  --muted: #949aa5;
-  --faint: #6b717c;
 
-  --accent: #7b91f7;
-  --accent-hover: #93a5f9;
-  --accent-soft: #1e2645;
-  --accent-text: #a5b4fc;
-  --on-accent: #0d0f13;
+  --bg: #0b0d12;
+  --surface: #13161d;
+  --surface-2: #1a1e27;
+  --surface-3: #222733;
+  --border: #232833;
+  --border-strong: #323946;
+  --text: #eef1f6;
+  --text-2: #cbd2dc;
+  --muted: #8f98a8;
+  --faint: #657080;
+
+  --accent: color-mix(in srgb, var(--accent-base) 68%, white);
+  --accent-hover: color-mix(in srgb, var(--accent-base) 56%, white);
+  --accent-soft: color-mix(in srgb, var(--accent-base) 22%, #13161d);
+  --accent-text: color-mix(in srgb, var(--accent-base) 52%, white);
+  --on-accent: #0b0d12;
+
+  --t1: color-mix(in srgb, var(--t1-base) 68%, white);
+  --t1-soft: color-mix(in srgb, var(--t1-base) 22%, #13161d);
+  --t2: color-mix(in srgb, var(--t2-base) 68%, white);
+  --t2-soft: color-mix(in srgb, var(--t2-base) 22%, #13161d);
 
   --warn: #f5b454;
   --warn-soft: #33260f;
@@ -113,26 +159,40 @@
   --ok: #4ade80;
   --ok-soft: #12291b;
 
-  --t1: #7b91f7;
-  --t1-soft: #1e2645;
-  --t2: #c08af5;
-  --t2-soft: #2a1d3d;
+  --hue-sky: #38bdf8;
+  --hue-amber: #fbbf24;
+  --hue-green: #34d399;
+  --hue-rose: #fb7185;
+  --hue-violet: #a78bfa;
+  --hue-slate: #94a3b8;
 
   --shadow-sm: none;
-  --shadow: 0 0 0 1px rgba(255, 255, 255, .02);
-  --shadow-lg: 0 16px 40px -8px rgba(0, 0, 0, .6);
-  --ring: 0 0 0 3px rgba(123, 145, 247, .28);
+  --shadow: 0 0 0 1px rgba(255, 255, 255, .015);
+  --shadow-hover: 0 0 0 1px rgba(255, 255, 255, .04), 0 12px 28px -10px rgba(0, 0, 0, .7);
+  --shadow-lg: 0 18px 44px -8px rgba(0, 0, 0, .7);
+  --ring: 0 0 0 3px color-mix(in srgb, var(--accent-base) 40%, transparent);
+  --glow: color-mix(in srgb, var(--accent-base) 16%, transparent);
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
+  min-height: 100vh;
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.5 var(--font);
-  font-feature-settings: "cv11", "ss01";
+  font: 14.5px/1.5 var(--font);
+  font-variant-numeric: lining-nums;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+/* Brilho suave da cor de destaque no topo da página */
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: 420px; z-index: -1; pointer-events: none;
+  background: radial-gradient(900px 340px at 50% -120px, var(--glow), transparent 70%);
+}
+h1, h2, h3 { font-family: var(--font); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 a { color: var(--accent-text); text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 2px; }
@@ -150,7 +210,7 @@ code {
 .help { color: var(--muted); font-size: 12.5px; line-height: 1.55; margin: 0 0 12px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .eyebrow {
-  font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em;
+  font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em;
   margin: 18px 0 6px; display: flex; align-items: center; gap: 6px;
 }
 .eyebrow:first-child { margin-top: 4px; }
@@ -160,7 +220,7 @@ code {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   height: 34px; padding: 0 13px; border-radius: var(--radius);
   border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-2);
-  font-weight: 500; font-size: 13px; cursor: pointer; white-space: nowrap;
+  font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap;
   box-shadow: var(--shadow-sm);
   transition: background .15s, border-color .15s, color .15s, box-shadow .15s, transform .05s;
 }
@@ -234,3 +294,51 @@ td.acao { width: 36px; text-align: right; }
 .alert.danger { background: var(--danger-soft); color: var(--danger); }
 .alert.info { background: var(--accent-soft); color: var(--accent-text); }
 .alert code { background: transparent; border-color: currentColor; opacity: .85; }
+
+/* ---------- Capas da tela Hoje (Personalizar → Capa) ---------- */
+.capa--destaque {
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--accent-base) 55%, white) 0%, transparent 52%),
+    radial-gradient(80% 120% at 100% 100%, color-mix(in srgb, var(--accent-base) 60%, black) 0%, transparent 60%),
+    linear-gradient(135deg, var(--accent-base), color-mix(in srgb, var(--accent-base) 62%, black));
+}
+.capa--aurora {
+  background:
+    radial-gradient(at 12% 18%, #a855f7 0, transparent 50%),
+    radial-gradient(at 88% 8%, #22d3ee 0, transparent 46%),
+    radial-gradient(at 70% 100%, #6366f1 0, transparent 55%),
+    #1e1b4b;
+}
+.capa--oceano {
+  background:
+    radial-gradient(at 8% 10%, #38bdf8 0, transparent 50%),
+    radial-gradient(at 92% 85%, #1d4ed8 0, transparent 55%),
+    radial-gradient(at 60% 0%, #0891b2 0, transparent 40%),
+    #0c4a6e;
+}
+.capa--por-do-sol {
+  background:
+    radial-gradient(at 0% 0%, #fb923c 0, transparent 50%),
+    radial-gradient(at 100% 0%, #f43f5e 0, transparent 50%),
+    radial-gradient(at 50% 110%, #7c2d12 0, transparent 60%),
+    #9f1239;
+}
+.capa--floresta {
+  background:
+    radial-gradient(at 14% 14%, #34d399 0, transparent 46%),
+    radial-gradient(at 88% 90%, #0f766e 0, transparent 55%),
+    radial-gradient(at 80% 0%, #65a30d 0, transparent 40%),
+    #064e3b;
+}
+.capa--grafite {
+  background:
+    radial-gradient(at 18% 0%, #64748b 0, transparent 52%),
+    radial-gradient(at 100% 100%, #1e293b 0, transparent 60%),
+    linear-gradient(135deg, #334155, #0f172a);
+}
+.capa--nenhuma { background: var(--surface); }
+
+/* ---------- Animações de lista ---------- */
+.lista-enter-active, .lista-leave-active { transition: opacity .25s ease, transform .25s ease; }
+.lista-enter-from { opacity: 0; transform: translateY(-6px); }
+.lista-leave-to { opacity: 0; transform: translateX(12px); }

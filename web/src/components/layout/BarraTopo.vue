@@ -1,5 +1,5 @@
 <script setup>
-import { House, LogOut, RefreshCw, Settings } from "lucide-vue-next";
+import { House, LogOut, Palette, RefreshCw, Settings } from "lucide-vue-next";
 import MarcaPainel from "@/components/ui/MarcaPainel.vue";
 import SeletorTema from "./SeletorTema.vue";
 
@@ -7,7 +7,7 @@ defineProps({
   atualizando: { type: Boolean, default: false },
   email: { type: String, default: "" },
 });
-defineEmits(["atualizar", "sair"]);
+defineEmits(["atualizar", "sair", "personalizar"]);
 </script>
 
 <template>
@@ -36,6 +36,9 @@ defineEmits(["atualizar", "sair"]);
           <RefreshCw :class="{ girando: atualizando }" />
         </button>
         <SeletorTema />
+        <button class="btn ghost icon" type="button" title="Personalizar" aria-label="Personalizar" @click="$emit('personalizar')">
+          <Palette />
+        </button>
         <button class="btn ghost icon" type="button" title="Sair" aria-label="Sair" @click="$emit('sair')">
           <LogOut />
         </button>
@@ -55,7 +58,7 @@ defineEmits(["atualizar", "sair"]);
   max-width: 1240px; margin: 0 auto; padding: 0 20px; height: 58px;
   display: flex; align-items: center; gap: 16px;
 }
-.marca { display: flex; align-items: center; gap: 10px; color: var(--text); font-weight: 650; font-size: 14.5px; letter-spacing: -.01em; }
+.marca { display: flex; align-items: center; gap: 10px; color: var(--text); font-weight: 800; font-size: 16px; letter-spacing: -.01em; }
 .marca:hover { text-decoration: none; }
 
 .abas { display: flex; gap: 2px; padding: 3px; margin: 0 auto; background: var(--surface-2); border: 1px solid var(--border); border-radius: 11px; }

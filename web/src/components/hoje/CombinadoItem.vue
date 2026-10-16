@@ -52,16 +52,18 @@ const detalhes = computed(() =>
 </template>
 
 <style scoped>
-.todo { display: flex; gap: 11px; align-items: flex-start; padding: 8px 10px; margin: 0 -10px; border-radius: 10px; transition: background .15s; }
+.todo { display: flex; gap: 11px; align-items: flex-start; padding: calc(var(--pad-item) - 2px) 10px; margin: 0 -10px; border-radius: 10px; transition: background .15s; }
 .todo:hover { background: var(--surface-2); }
 .check {
-  width: 19px; height: 19px; margin-top: 1px; flex: none; border-radius: 50%; cursor: pointer; padding: 0;
+  width: 20px; height: 20px; margin-top: 1px; flex: none; border-radius: 50%; cursor: pointer; padding: 0;
   border: 1.5px solid var(--border-strong); background: var(--surface); color: transparent;
   display: grid; place-items: center; transition: background .15s, border-color .15s, color .15s;
 }
 .check:hover { border-color: var(--accent); color: var(--accent); }
 .check svg { width: 12px; height: 12px; stroke-width: 3; }
-.done .check { background: var(--ok); border-color: var(--ok); color: #fff; }
+.done .check { background: var(--ok); border-color: var(--ok); color: #fff; animation: marcar .35s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes marcar { 0% { transform: scale(.6); } 100% { transform: scale(1); } }
+.desc > span:first-child { font-weight: 500; }
 .main { flex: 1; min-width: 0; }
 .desc { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; overflow-wrap: anywhere; }
 .detalhes { font-size: 12px; color: var(--muted); margin-top: 2px; }

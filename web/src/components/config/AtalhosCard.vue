@@ -20,6 +20,7 @@ async function adicionar() {
   <PainelCard
     titulo="Links rápidos"
     :icone="Link2"
+    tom="green"
     :contador="dados.links.length"
     descricao="Aparecem no topo da tela Hoje: Miro, intranet, Discord, planilhas…"
   >

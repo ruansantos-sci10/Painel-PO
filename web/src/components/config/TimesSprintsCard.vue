@@ -25,6 +25,7 @@ function mudarDuracao(time, valor) {
   <PainelCard
     titulo="Times e sprints"
     :icone="Users"
+    tom="accent"
     descricao="O nome aparece em todo o painel. Basta uma data de início de qualquer sprint."
   >
     <div class="times">

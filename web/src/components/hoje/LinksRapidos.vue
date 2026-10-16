@@ -2,6 +2,9 @@
 import { ArrowUpRight } from "lucide-vue-next";
 import { useDadosStore } from "@/stores/dados";
 
+// vidro: estilo translúcido para ficar por cima da capa da tela Hoje
+defineProps({ vidro: { type: Boolean, default: false } });
+
 const dados = useDadosStore();
 
 // Inicial colorida para reconhecer o atalho de relance (sem buscar ícones em serviços externos)
@@ -10,7 +13,7 @@ const cor = (nome) => CORES[[...nome].reduce((s, c) => s + c.charCodeAt(0), 0) %
 </script>
 
 <template>
-  <nav v-if="dados.links.length" class="links" aria-label="Links rápidos">
+  <nav v-if="dados.links.length" class="links" :class="{ vidro }" aria-label="Links rápidos">
     <a v-for="l in dados.links" :key="l.id" :href="l.url" target="_blank" rel="noopener">
       <span class="inicial" :style="{ background: cor(l.nome) }" aria-hidden="true">{{ l.nome.charAt(0).toUpperCase() }}</span>
       {{ l.nome }}
@@ -22,12 +25,20 @@ const cor = (nome) => CORES[[...nome].reduce((s, c) => s + c.charCodeAt(0), 0) %
 <style scoped>
 .links { display: flex; gap: 6px; flex-wrap: wrap; }
 .links a {
-  display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 9px 0 6px;
-  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-  color: var(--text-2); font-size: 13px; font-weight: 500; box-shadow: var(--shadow-sm);
-  transition: border-color .15s, color .15s, transform .15s;
+  display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 10px 0 6px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 11px;
+  color: var(--text-2); font-size: 13px; font-weight: 600; box-shadow: var(--shadow-sm);
+  transition: border-color .15s, color .15s, transform .15s, background .15s;
 }
 .links a:hover { border-color: var(--border-strong); color: var(--text); text-decoration: none; transform: translateY(-1px); }
-.inicial { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: 700; }
+.inicial { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; color: #fff; font-size: 11.5px; font-weight: 800; }
 .seta { width: 13px; height: 13px; color: var(--faint); }
+
+.vidro a {
+  color: #fff; background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .24); box-shadow: none;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.vidro a:hover { color: #fff; background: rgba(255, 255, 255, .24); border-color: rgba(255, 255, 255, .4); }
+.vidro .inicial { box-shadow: 0 0 0 1px rgba(255, 255, 255, .35); }
+.vidro .seta { color: rgba(255, 255, 255, .75); }
 </style>
