@@ -15,7 +15,7 @@ defineEmits(["atualizar", "sair", "personalizar"]);
     <div class="conteudo">
       <RouterLink :to="{ name: 'hoje' }" class="marca">
         <MarcaPainel :tamanho="28" />
-        <span>Painel do PO</span>
+        <span class="nome">Painel do <strong>PO</strong></span>
       </RouterLink>
 
       <nav class="abas" aria-label="Seções">
@@ -58,7 +58,8 @@ defineEmits(["atualizar", "sair", "personalizar"]);
   max-width: 1240px; margin: 0 auto; padding: 0 20px; height: 58px;
   display: flex; align-items: center; gap: 16px;
 }
-.marca { display: flex; align-items: center; gap: 10px; color: var(--text); font-weight: 800; font-size: 16px; letter-spacing: -.01em; }
+.marca { display: flex; align-items: center; gap: 10px; color: var(--text); font-size: 16.5px; font-weight: 600; letter-spacing: -.01em; }
+.marca strong { font-weight: 800; color: var(--accent-text); }
 .marca:hover { text-decoration: none; }
 
 .abas { display: flex; gap: 2px; padding: 3px; margin: 0 auto; background: var(--surface-2); border: 1px solid var(--border); border-radius: 11px; }
@@ -78,7 +79,7 @@ defineEmits(["atualizar", "sair", "personalizar"]);
 @media (max-width: 860px) { .email { display: none; } }
 @media (max-width: 560px) {
   .conteudo { padding: 0 12px; gap: 8px; }
-  .marca span { display: none; }
+  .marca .nome { display: none; }
   .abas a { padding: 0 10px; }
 }
 @media (max-width: 440px) { .abas a span { display: none; } }

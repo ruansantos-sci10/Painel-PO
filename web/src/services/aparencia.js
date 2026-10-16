@@ -2,6 +2,8 @@
 // densidade, saudação e quais blocos aparecem. Salva em config/aparencia no Firestore
 // (vale em qualquer dispositivo) e copiada no navegador para aplicar antes do primeiro desenho.
 
+import { atualizarFavicon } from "./logo";
+
 // Cores escolhidas para ter bom contraste com texto branco no tema claro;
 // no tema escuro o base.css clareia cada uma automaticamente.
 export const CORES = [
@@ -73,6 +75,7 @@ export function aplicarAparencia(ap) {
   const raiz = document.documentElement;
   Object.entries(vars).forEach(([k, v]) => raiz.style.setProperty(k, v));
   raiz.dataset.densidade = ap.densidade;
+  atualizarFavicon(vars["--accent-base"]);
   try {
     localStorage.setItem(CHAVE_CACHE, JSON.stringify({ vars, densidade: ap.densidade }));
   } catch { /* sem storage: aplica só nesta visita */ }

@@ -31,8 +31,8 @@ async function entrar() {
 <template>
   <main class="pagina">
     <div class="login">
-      <MarcaPainel :tamanho="44" />
-      <h1>Painel do PO</h1>
+      <MarcaPainel :tamanho="52" />
+      <h1>Painel do <strong>PO</strong></h1>
       <p class="muted">Entre com o usuário criado no Firebase.</p>
 
       <form @submit.prevent="entrar">
@@ -64,7 +64,8 @@ async function entrar() {
   width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--border);
   border-radius: 20px; padding: 32px 28px 28px; box-shadow: var(--shadow-lg);
 }
-h1 { margin: 18px 0 4px; font-size: 21px; font-weight: 650; letter-spacing: -.02em; }
+h1 { margin: 18px 0 4px; font-size: 24px; font-weight: 600; letter-spacing: -.02em; }
+h1 strong { font-weight: 800; color: var(--accent-text); }
 .muted { margin: 0; font-size: 13.5px; }
 form { display: grid; gap: 10px; margin-top: 22px; }
 .campo { position: relative; display: block; }
